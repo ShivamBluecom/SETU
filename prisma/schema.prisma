@@ -1,0 +1,172 @@
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQL Server does not support Prisma native enums.
+// Valid string values are enforced at the application layer (src/types/enums.ts).
+// UserRole:           ISR | ACCOUNT_MANAGER | BU_MANAGER | BU_HEAD | TERRITORY_MANAGER | ADMIN
+// OpportunityStage:   PROSPECTING | QUALIFIED | PROPOSAL | NEGOTIATION | WON | LOST
+// OpportunityPriority: LOW | MEDIUM | HIGH
+
+model Territory {
+  id            String         @id @default(cuid())
+  name          String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  businessUnits BusinessUnit[]
+  users         User[]
+  opportunities Opportunity[]
+  companies     Company[]
+
+  @@map("territories")
+}
+
+model BusinessUnit {
+  id          String    @id @default(cuid())
+  name        String
+  territoryId String?
+  headId      String?   @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  territory     Territory?    @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  head          User?         @relation("BUHead", fields: [headId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  members       User[]        @relation("BUMembers")
+  opportunities Opportunity[] @relation("BUOpportunities")
+
+  @@map("business_units")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  role        String    @default("ISR") @db.NVarChar(50)
+  buId        String?
+  territoryId String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  bu          BusinessUnit?  @relation("BUMembers", fields: [buId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  territory   Territory?     @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  headOfBU    BusinessUnit?  @relation("BUHead")
+
+  createdOpportunities Opportunity[]    @relation("CreatedBy")
+  ownedOpportunities   Opportunity[]    @relation("BUOwner")
+  notes                Note[]
+  shares               OpportunityShare[]
+  notifications        Notification[]
+
+  @@map("users")
+}
+
+model Company {
+  id          String    @id @default(cuid())
+  name        String
+  industry    String?
+  website     String?
+  headOffice  String?
+  territoryId String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  territory     Territory?    @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contacts      Contact[]
+  opportunities Opportunity[]
+
+  @@map("companies")
+}
+
+model Contact {
+  id          String    @id @default(cuid())
+  name        String
+  designation String?
+  email       String?
+  phone       String?
+  companyId   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunities Opportunity[] @relation("PrimaryContact")
+
+  @@map("contacts")
+}
+
+model Opportunity {
+  id               String    @id @default(cuid())
+  title            String
+  description      String?   @db.NVarChar(Max)
+  value            Decimal   @default(0) @db.Decimal(18, 2)
+  currency         String    @default("INR")
+  closeDate        DateTime?
+  stage            String    @default("PROSPECTING") @db.NVarChar(50)
+  priority         String    @default("MEDIUM") @db.NVarChar(50)
+  productService   String?
+  orderIndex       Int       @default(0)
+  companyId        String
+  primaryContactId String?
+  buId             String?
+  territoryId      String?
+  createdById      String
+  buOwnerId        String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  company        Company       @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  primaryContact Contact?      @relation("PrimaryContact", fields: [primaryContactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  bu             BusinessUnit? @relation("BUOpportunities", fields: [buId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  territory      Territory?    @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdBy      User          @relation("CreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  buOwner        User?         @relation("BUOwner", fields: [buOwnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  notes          Note[]
+  shares         OpportunityShare[]
+  notifications  Notification[]
+
+  @@map("opportunities")
+}
+
+model Note {
+  id            String    @id @default(cuid())
+  content       String    @db.NVarChar(Max)
+  opportunityId String
+  authorId      String
+  createdAt     DateTime  @default(now())
+
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  author        User        @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("notes")
+}
+
+model OpportunityShare {
+  opportunityId String
+  userId        String
+  createdAt     DateTime  @default(now())
+
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user          User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([opportunityId, userId])
+  @@map("opportunity_shares")
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  opportunityId String
+  userId        String
+  stage         String    @db.NVarChar(50)
+  read          Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user          User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("notifications")
+}
