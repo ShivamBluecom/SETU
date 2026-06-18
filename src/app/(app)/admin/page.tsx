@@ -11,7 +11,7 @@ export default async function AdminPage() {
   const user = session.user as SessionUser
   if (user.role !== 'ADMIN') redirect('/dashboard')
 
-  const [users, businessUnits, territories, companies] = await Promise.all([
+  const [users, businessUnits, territories, companies, opportunities] = await Promise.all([
     prisma.user.findMany({
       include: {
         bu: { select: { id: true, name: true } },
@@ -41,6 +41,17 @@ export default async function AdminPage() {
       select: { id: true, name: true, accountManagerId: true },
       orderBy: { name: 'asc' },
     }),
+    prisma.opportunity.findMany({
+      select: {
+        stage: true,
+        priority: true,
+        value: true,
+        createdAt: true,
+        territory: { select: { name: true } },
+        bu: { select: { name: true } },
+        buOwner: { select: { name: true } },
+      },
+    }),
   ])
 
   return (
@@ -53,6 +64,7 @@ export default async function AdminPage() {
         businessUnits={businessUnits}
         territories={territories}
         companies={companies}
+        opportunities={opportunities}
         currentUserId={user.id}
       />
     </div>
