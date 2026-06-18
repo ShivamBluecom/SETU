@@ -3,9 +3,21 @@ import { prisma } from '@/lib/prisma'
 import { getOpportunityFilter } from '@/lib/query-filters'
 import { KPICard } from '@/components/ui/KPICard'
 import { StageBlocks } from '@/components/ui/StageBlocks'
+import { BarList } from '@/components/ui/charts/BarList'
+import { TrendChart } from '@/components/ui/charts/TrendChart'
 import { DashboardTable } from './DashboardTable'
-import { formatINR } from '@/lib/format'
+import { formatINR, formatINRCompact } from '@/lib/format'
+import { groupByPriority, groupByTerritory, groupByBusinessUnit, monthlyTrend } from '@/lib/analytics'
 import type { SessionUser } from '@/types/api'
+
+const SECTION_LABEL_STYLE: React.CSSProperties = {
+  margin: '0 0 12px',
+  fontSize: '11px',
+  fontWeight: 500,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: 'var(--color-text-3)',
+}
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -17,7 +29,15 @@ export default async function DashboardPage() {
   const [allOpps, recentOpps] = await Promise.all([
     prisma.opportunity.findMany({
       where: filter,
-      select: { stage: true, value: true },
+      select: {
+        stage: true,
+        priority: true,
+        value: true,
+        createdAt: true,
+        territory: { select: { name: true } },
+        bu: { select: { name: true } },
+        buOwner: { select: { name: true } },
+      },
     }),
     prisma.opportunity.findMany({
       where: filter,
@@ -43,6 +63,13 @@ export default async function DashboardPage() {
     acc[o.stage] = (acc[o.stage] ?? 0) + 1
     return acc
   }, {})
+
+  const priorityRows = groupByPriority(allOpps)
+  const trendPoints = monthlyTrend(allOpps)
+  const showTerritory = user.role === 'ADMIN' || user.role === 'BU_HEAD'
+  const showBU = user.role === 'ADMIN' || user.role === 'TERRITORY_MANAGER'
+  const territoryRows = showTerritory ? groupByTerritory(allOpps) : []
+  const buRows = showBU ? groupByBusinessUnit(allOpps) : []
 
   return (
     <div>
@@ -70,16 +97,47 @@ export default async function DashboardPage() {
       </div>
 
       <div style={{ marginBottom: '32px' }}>
-        <p style={{ margin: '0 0 12px', fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
-          Stage Distribution
-        </p>
+        <p style={SECTION_LABEL_STYLE}>Stage Distribution</p>
         <StageBlocks counts={stageCounts} />
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div style={{ background: 'var(--color-surface)', border: '0.5px solid var(--color-border)', borderRadius: '8px', padding: '20px 24px' }}>
+          <p style={SECTION_LABEL_STYLE}>Pipeline Trend (6 mo)</p>
+          <TrendChart points={trendPoints.map(p => ({ label: p.label, value: p.count }))} />
+        </div>
+        <div style={{ background: 'var(--color-surface)', border: '0.5px solid var(--color-border)', borderRadius: '8px', padding: '20px 24px' }}>
+          <p style={SECTION_LABEL_STYLE}>By Priority</p>
+          <BarList rows={priorityRows.map(r => ({ label: r.label, value: r.count }))} formatValue={v => String(v)} />
+        </div>
+      </div>
+
+      {(territoryRows.length > 0 || buRows.length > 0) && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: territoryRows.length > 0 && buRows.length > 0 ? 'repeat(2, 1fr)' : '1fr',
+            gap: '16px',
+            marginBottom: '32px',
+          }}
+        >
+          {territoryRows.length > 0 && (
+            <div style={{ background: 'var(--color-surface)', border: '0.5px solid var(--color-border)', borderRadius: '8px', padding: '20px 24px' }}>
+              <p style={SECTION_LABEL_STYLE}>By Territory</p>
+              <BarList rows={territoryRows} formatValue={formatINRCompact} />
+            </div>
+          )}
+          {buRows.length > 0 && (
+            <div style={{ background: 'var(--color-surface)', border: '0.5px solid var(--color-border)', borderRadius: '8px', padding: '20px 24px' }}>
+              <p style={SECTION_LABEL_STYLE}>By Business Unit</p>
+              <BarList rows={buRows} formatValue={formatINRCompact} />
+            </div>
+          )}
+        </div>
+      )}
+
       <div>
-        <p style={{ margin: '0 0 12px', fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
-          Recent Opportunities
-        </p>
+        <p style={SECTION_LABEL_STYLE}>Recent Opportunities</p>
         <DashboardTable opportunities={recentOpps} />
       </div>
     </div>

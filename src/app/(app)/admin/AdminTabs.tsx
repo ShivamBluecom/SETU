@@ -3,9 +3,23 @@
 import { useState, useRef, useEffect } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Avatar } from '@/components/ui/Avatar'
+import { KPICard } from '@/components/ui/KPICard'
+import { BarList } from '@/components/ui/charts/BarList'
+import { DonutChart } from '@/components/ui/charts/DonutChart'
+import { TrendChart } from '@/components/ui/charts/TrendChart'
 import { useToast } from '@/contexts/ToastContext'
 import { useRouter } from 'next/navigation'
 import { Pencil, Trash2, Check, X } from 'lucide-react'
+import { formatINR, formatINRCompact } from '@/lib/format'
+import {
+  groupByPriority,
+  groupByTerritory,
+  groupByBusinessUnit,
+  groupByOwner,
+  monthlyTrend,
+  winLossSplit,
+  type AnalyticsOpportunity,
+} from '@/lib/analytics'
 import type { UserRole } from '@/types/enums'
 
 const ALL_ROLES: UserRole[] = [
@@ -34,7 +48,24 @@ interface AdminTabsProps {
     _count: { users: number; opportunities: number };
   }>
   companies: Array<{ id: string; name: string; accountManagerId: string | null }>
+  opportunities: AnalyticsOpportunity[]
   currentUserId: string
+}
+
+const cardStyle: React.CSSProperties = {
+  background: 'var(--color-surface)',
+  border: '0.5px solid var(--color-border)',
+  borderRadius: '8px',
+  padding: '20px 24px',
+}
+
+const sectionLabelStyle: React.CSSProperties = {
+  margin: '0 0 12px',
+  fontSize: '11px',
+  fontWeight: 500,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: 'var(--color-text-3)',
 }
 
 const tabTriggerStyle = (active: boolean): React.CSSProperties => ({
@@ -51,7 +82,7 @@ const selectStyle: React.CSSProperties = {
   fontSize: '13px', padding: '4px 8px', maxWidth: '160px', width: '100%',
 }
 
-export function AdminTabs({ users, businessUnits, territories, companies, currentUserId }: AdminTabsProps) {
+export function AdminTabs({ users, businessUnits, territories, companies, opportunities, currentUserId }: AdminTabsProps) {
   const [tab, setTab] = useState('users')
   const [newTerritoryName, setNewTerritoryName] = useState('')
   const [newBUName, setNewBUName] = useState('')
@@ -65,6 +96,20 @@ export function AdminTabs({ users, businessUnits, territories, companies, curren
   useEffect(() => {
     if (editingTerritoryId) editInputRef.current?.focus()
   }, [editingTerritoryId])
+
+  const openOpps = opportunities.filter(o => o.stage !== 'WON' && o.stage !== 'LOST')
+  const totalPipelineValue = openOpps.reduce((sum, o) => sum + Number(o.value), 0)
+  const wonCount = opportunities.filter(o => o.stage === 'WON').length
+  const winRate = opportunities.length > 0 ? Math.round((wonCount / opportunities.length) * 100) : 0
+  const avgDealSize = opportunities.length > 0
+    ? opportunities.reduce((sum, o) => sum + Number(o.value), 0) / opportunities.length
+    : 0
+  const splits = winLossSplit(opportunities)
+  const businessUnitRows = groupByBusinessUnit(opportunities)
+  const territoryRows = groupByTerritory(opportunities)
+  const ownerRows = groupByOwner(opportunities)
+  const trendPoints = monthlyTrend(opportunities, 12)
+  const priorityRows = groupByPriority(opportunities).map(r => ({ label: r.label, value: r.count }))
 
   const patchUser = async (userId: string, data: Record<string, unknown>, label: string) => {
     const res = await fetch(`/api/users/${userId}`, {
@@ -139,6 +184,7 @@ export function AdminTabs({ users, businessUnits, territories, companies, curren
           <Tabs.Trigger value="users" style={tabTriggerStyle(tab === 'users')}>Users ({users.length})</Tabs.Trigger>
           <Tabs.Trigger value="business-units" style={tabTriggerStyle(tab === 'business-units')}>Business Units ({businessUnits.length})</Tabs.Trigger>
           <Tabs.Trigger value="territories" style={tabTriggerStyle(tab === 'territories')}>Territories ({territories.length})</Tabs.Trigger>
+          <Tabs.Trigger value="analytics" style={tabTriggerStyle(tab === 'analytics')}>Analytics</Tabs.Trigger>
         </Tabs.List>
       </div>
 
@@ -409,6 +455,54 @@ export function AdminTabs({ users, businessUnits, territories, companies, curren
               })}
             </tbody>
           </table>
+        </div>
+      </Tabs.Content>
+
+      <Tabs.Content value="analytics">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <KPICard title="Total Pipeline" value={formatINR(totalPipelineValue)} subtitle={`${openOpps.length} open opportunities`} valueColor="accent" />
+          <KPICard title="Open Opportunities" value={String(openOpps.length)} subtitle="Excluding Won & Lost" />
+          <KPICard title="Win Rate" value={`${winRate}%`} subtitle={`${wonCount} won of ${opportunities.length} total`} />
+          <KPICard title="Avg Deal Size" value={formatINR(avgDealSize)} subtitle="Across all opportunities" />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={cardStyle}>
+            <p style={sectionLabelStyle}>Won / Lost / Open</p>
+            <DonutChart
+              segments={[
+                { label: 'Won', value: splits.won, color: 'var(--color-accent)' },
+                { label: 'Lost', value: splits.lost, color: 'var(--color-danger)' },
+                { label: 'Open', value: splits.open, color: 'var(--color-surface-2)' },
+              ]}
+            />
+          </div>
+          <div style={cardStyle}>
+            <p style={sectionLabelStyle}>Opportunities Created (12 mo)</p>
+            <TrendChart points={trendPoints.map(p => ({ label: p.label, value: p.count }))} />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={cardStyle}>
+            <p style={sectionLabelStyle}>Pipeline by Business Unit</p>
+            <BarList rows={businessUnitRows} formatValue={formatINRCompact} />
+          </div>
+          <div style={cardStyle}>
+            <p style={sectionLabelStyle}>Pipeline by Territory</p>
+            <BarList rows={territoryRows} formatValue={formatINRCompact} />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+          <div style={cardStyle}>
+            <p style={sectionLabelStyle}>Top Owners by Pipeline</p>
+            <BarList rows={ownerRows} formatValue={formatINRCompact} />
+          </div>
+          <div style={cardStyle}>
+            <p style={sectionLabelStyle}>By Priority</p>
+            <BarList rows={priorityRows} formatValue={v => String(v)} />
+          </div>
         </div>
       </Tabs.Content>
     </Tabs.Root>

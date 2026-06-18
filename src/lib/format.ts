@@ -8,6 +8,15 @@ export function formatINR(value: number | Decimal | string): string {
   }).format(Number(value))
 }
 
+export function formatINRCompact(value: number | Decimal | string): string {
+  const n = Number(value)
+  const abs = Math.abs(n)
+  if (abs >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(1)}Cr`
+  if (abs >= 1_00_000) return `₹${(n / 1_00_000).toFixed(1)}L`
+  if (abs >= 1_000) return `₹${(n / 1_000).toFixed(1)}K`
+  return `₹${n.toFixed(0)}`
+}
+
 export function formatDate(date: Date | string | null | undefined): string {
   if (!date) return '—'
   return new Intl.DateTimeFormat('en-IN', {
