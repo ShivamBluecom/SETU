@@ -50,23 +50,22 @@ export async function POST(req: NextRequest) {
   let buOwnerId = data.buOwnerId
   let territoryId = data.territoryId
 
-  if (data.buId) {
+  // Auto-assign buOwner: if BU has no BU_HEAD, assign to the first BU_MANAGER
+  if (data.buId && !buOwnerId) {
     const bu = await prisma.businessUnit.findUnique({
       where: { id: data.buId },
       include: {
         members: {
-          where: { role: 'BU_MANAGER' },
-          select: { id: true },
-          take: 1,
+          where: { role: { in: ['BU_HEAD', 'BU_MANAGER'] } },
+          select: { id: true, role: true },
         },
       },
     })
     if (bu) {
-      if (!bu.headId && !buOwnerId) {
-        buOwnerId = bu.members[0]?.id
-      }
-      if (!territoryId && bu.territoryId) {
-        territoryId = bu.territoryId
+      const hasHead = bu.members.some(m => m.role === 'BU_HEAD')
+      if (!hasHead) {
+        const manager = bu.members.find(m => m.role === 'BU_MANAGER')
+        buOwnerId = manager?.id
       }
     }
   }

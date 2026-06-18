@@ -3,6 +3,31 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getOpportunityFilter } from '@/lib/query-filters'
 import type { SessionUser } from '@/types/api'
+import { z } from 'zod'
+
+const UpdateCompanySchema = z.object({
+  accountManagerId: z.string().nullable().optional(),
+})
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const user = session.user as SessionUser
+  if (user.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const body = await req.json()
+  const parsed = UpdateCompanySchema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+
+  const company = await prisma.company.update({
+    where: { id: params.id },
+    data: parsed.data,
+    select: { id: true, name: true, accountManagerId: true },
+  })
+
+  return NextResponse.json(company)
+}
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()

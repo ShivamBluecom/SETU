@@ -11,6 +11,7 @@ interface ShareModalProps {
   onOpenChange: (open: boolean) => void
   currentShares: Array<{ userId: string; user: { id: string; name: string; email: string } }>
   onShared: () => void
+  canUnshare?: boolean
 }
 
 interface UserResult {
@@ -26,6 +27,7 @@ export function ShareModal({
   onOpenChange,
   currentShares,
   onShared,
+  canUnshare = false,
 }: ShareModalProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<UserResult[]>([])
@@ -49,6 +51,20 @@ export function ShareModal({
     setQuery(val)
     const timer = setTimeout(() => search(val), 300)
     return () => clearTimeout(timer)
+  }
+
+  const handleUnshare = async (userId: string) => {
+    const res = await fetch(`/api/opportunities/${opportunityId}/share`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    })
+    if (res.ok) {
+      showToast('User removed', 'success')
+      onShared()
+    } else {
+      showToast('Failed to remove', 'error')
+    }
   }
 
   const handleShare = async (userId: string) => {
@@ -129,8 +145,19 @@ export function ShareModal({
               {currentShares.map((share) => (
                 <div key={share.userId} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Avatar name={share.user.name} size="sm" />
-                  <span style={{ fontSize: '13px' }}>{share.user.name}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-3)' }}>{share.user.email}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '13px' }}>{share.user.name}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-3)', marginLeft: '6px' }}>{share.user.email}</span>
+                  </div>
+                  {canUnshare && (
+                    <button
+                      onClick={() => handleUnshare(share.userId)}
+                      className="btn-secondary"
+                      style={{ padding: '3px 8px', fontSize: '11px', flexShrink: 0 }}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

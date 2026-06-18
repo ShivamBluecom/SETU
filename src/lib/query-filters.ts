@@ -10,19 +10,20 @@ export function getOpportunityFilter(user: SessionUser): Prisma.OpportunityWhere
     case 'ISR':
       return { OR: [{ createdById: user.id }, sharedClause] }
 
-    case 'ACCOUNT_MANAGER':
-      return {
-        OR: [{ createdById: user.id }, { buOwnerId: user.id }, sharedClause],
-      }
-
     case 'BU_MANAGER':
+      if (!user.buId || !user.territoryId) return { id: 'none' }
+      return { buId: user.buId, territoryId: user.territoryId }
+
     case 'BU_HEAD':
       if (!user.buId) return { id: 'none' }
-      return { OR: [{ buId: user.buId }, sharedClause] }
+      return { buId: user.buId }
 
     case 'TERRITORY_MANAGER':
       if (!user.territoryId) return { id: 'none' }
-      return { OR: [{ territoryId: user.territoryId }, sharedClause] }
+      return { territoryId: user.territoryId }
+
+    case 'ACCOUNT_MANAGER':
+      return { company: { accountManagerId: user.id } }
 
     case 'ADMIN':
       return {}

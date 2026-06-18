@@ -6,8 +6,6 @@ import { z } from 'zod'
 
 const CreateBUSchema = z.object({
   name: z.string().min(1),
-  territoryId: z.string().optional(),
-  headId: z.string().optional(),
 })
 
 export async function GET() {
@@ -16,8 +14,11 @@ export async function GET() {
 
   const bus = await prisma.businessUnit.findMany({
     include: {
-      territory: { select: { id: true, name: true } },
-      head: { select: { id: true, name: true, email: true } },
+      members: {
+        where: { role: 'BU_HEAD' },
+        select: { id: true, name: true, email: true },
+        take: 1,
+      },
       _count: { select: { members: true } },
     },
     orderBy: { name: 'asc' },
@@ -37,13 +38,21 @@ export async function POST(req: NextRequest) {
   const parsed = CreateBUSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
 
-  const bu = await prisma.businessUnit.create({
-    data: parsed.data,
-    include: {
-      territory: { select: { id: true, name: true } },
-      head: { select: { id: true, name: true } },
-    },
-  })
-
-  return NextResponse.json(bu, { status: 201 })
+  try {
+    const bu = await prisma.businessUnit.create({
+      data: parsed.data,
+      include: {
+        members: {
+          where: { role: 'BU_HEAD' },
+          select: { id: true, name: true, email: true },
+          take: 1,
+        },
+        _count: { select: { members: true } },
+      },
+    })
+    return NextResponse.json(bu, { status: 201 })
+  } catch (err) {
+    console.error('[POST /api/business-units]', err)
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
 }

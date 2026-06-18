@@ -14,7 +14,7 @@ export async function GET() {
 
   const territories = await prisma.territory.findMany({
     include: {
-      _count: { select: { businessUnits: true, users: true, opportunities: true } },
+      _count: { select: { users: true, opportunities: true } },
     },
     orderBy: { name: 'asc' },
   })
@@ -32,6 +32,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const parsed = CreateTerritorySchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+
+  const duplicate = await prisma.territory.findFirst({
+    where: { name: { equals: parsed.data.name } },
+  })
+  if (duplicate) return NextResponse.json({ error: 'A territory with this name already exists' }, { status: 409 })
 
   const territory = await prisma.territory.create({ data: parsed.data })
   return NextResponse.json(territory, { status: 201 })

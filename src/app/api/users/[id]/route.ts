@@ -15,8 +15,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const user = session.user as SessionUser
-  if (user.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const caller = session.user as SessionUser
+  if (caller.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
   const parsed = UpdateUserSchema.safeParse(body)
@@ -24,10 +24,31 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
   }
 
+  // Self-demotion guard: block removing ADMIN if it would leave zero admins
+  if (parsed.data.role && parsed.data.role !== 'ADMIN') {
+    const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true } })
+    if (target?.role === 'ADMIN') {
+      const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } })
+      if (adminCount <= 1) {
+        return NextResponse.json({ error: 'Cannot remove the last admin' }, { status: 409 })
+      }
+    }
+  }
+
   const data: { role?: UserRole; buId?: string | null; territoryId?: string | null } = {}
   if (parsed.data.role !== undefined) data.role = parsed.data.role
   if (parsed.data.buId !== undefined) data.buId = parsed.data.buId
   if (parsed.data.territoryId !== undefined) data.territoryId = parsed.data.territoryId
+
+  // Auto-clear role-irrelevant fields when role changes
+  if (data.role === 'ACCOUNT_MANAGER') {
+    data.buId = null
+    data.territoryId = null
+  } else if (data.role === 'BU_HEAD') {
+    data.territoryId = null
+  } else if (data.role === 'TERRITORY_MANAGER') {
+    data.buId = null
+  }
 
   const updated = await prisma.user.update({
     where: { id: params.id },

@@ -11,8 +11,8 @@ async function main() {
 
   const bu = await prisma.businessUnit.upsert({
     where: { id: 'seed-bu-direct-sales' },
-    update: { name: 'Direct Sales', territoryId: territory.id },
-    create: { id: 'seed-bu-direct-sales', name: 'Direct Sales', territoryId: territory.id },
+    update: { name: 'Direct Sales' },
+    create: { id: 'seed-bu-direct-sales', name: 'Direct Sales' },
   })
 
   await prisma.user.upsert({

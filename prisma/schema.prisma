@@ -19,7 +19,6 @@ model Territory {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  businessUnits BusinessUnit[]
   users         User[]
   opportunities Opportunity[]
   companies     Company[]
@@ -28,15 +27,11 @@ model Territory {
 }
 
 model BusinessUnit {
-  id          String    @id @default(cuid())
-  name        String
-  territoryId String?
-  headId      String?   @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  territory     Territory?    @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  head          User?         @relation("BUHead", fields: [headId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   members       User[]        @relation("BUMembers")
   opportunities Opportunity[] @relation("BUOpportunities")
 
@@ -55,30 +50,32 @@ model User {
 
   bu          BusinessUnit?  @relation("BUMembers", fields: [buId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   territory   Territory?     @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  headOfBU    BusinessUnit?  @relation("BUHead")
 
   createdOpportunities Opportunity[]    @relation("CreatedBy")
   ownedOpportunities   Opportunity[]    @relation("BUOwner")
   notes                Note[]
   shares               OpportunityShare[]
   notifications        Notification[]
+  managedCompanies     Company[]        @relation("AMCompanies")
 
   @@map("users")
 }
 
 model Company {
-  id          String    @id @default(cuid())
-  name        String
-  industry    String?
-  website     String?
-  headOffice  String?
-  territoryId String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  name             String
+  industry         String?
+  website          String?
+  headOffice       String?
+  territoryId      String?
+  accountManagerId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  territory     Territory?    @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  contacts      Contact[]
-  opportunities Opportunity[]
+  territory      Territory?    @relation(fields: [territoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accountManager User?         @relation("AMCompanies", fields: [accountManagerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contacts       Contact[]
+  opportunities  Opportunity[]
 
   @@map("companies")
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { X, Share2 } from 'lucide-react'
 import { StageBadge } from '@/components/ui/StageBadge'
 import { Avatar } from '@/components/ui/Avatar'
@@ -41,6 +42,8 @@ export function OpportunityDrawer({
   canAssignOwner = false,
   onUpdated,
 }: OpportunityDrawerProps) {
+  const { data: session } = useSession()
+  const currentUserId = session?.user?.id
   const { showToast } = useToast()
   const [opp, setOpp] = useState<OpportunityWithRelations & {
     shares: Array<{ userId: string; user: { id: string; name: string; email: string } }>
@@ -299,6 +302,10 @@ export function OpportunityDrawer({
           open={shareOpen}
           onOpenChange={setShareOpen}
           currentShares={opp.shares ?? []}
+          canUnshare={
+            !!currentUserId &&
+            (currentUserId === opp.createdBy.id || currentUserId === opp.buOwner?.id)
+          }
           onShared={() => {
             fetch(`/api/opportunities/${opp.id}`)
               .then(r => r.json())
