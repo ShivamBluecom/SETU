@@ -8,11 +8,7 @@ export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const user = session.user as SessionUser
-  const where = user.role === 'ACCOUNT_MANAGER' ? { accountManagerId: user.id } : {}
-
   const companies = await prisma.company.findMany({
-    where,
     include: {
       territory: { select: { id: true, name: true } },
       _count: { select: { opportunities: true, contacts: true } },
@@ -27,14 +23,28 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const user = session.user as SessionUser
+
   const body = await req.json()
   const parsed = CreateCompanySchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 })
   }
 
+  // SQL Server collation is case-insensitive by default — plain equals suffices
+  const existing = await prisma.company.findFirst({
+    where: { name: { equals: parsed.data.name.trim() } },
+    select: { name: true },
+  })
+  if (existing) {
+    return NextResponse.json(
+      { error: `A company named '${existing.name}' already exists`, field: 'name' },
+      { status: 409 }
+    )
+  }
+
   const company = await prisma.company.create({
-    data: parsed.data,
+    data: { ...parsed.data, createdById: user.id },
     include: { territory: { select: { id: true, name: true } } },
   })
 

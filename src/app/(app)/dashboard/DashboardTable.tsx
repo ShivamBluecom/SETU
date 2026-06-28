@@ -31,7 +31,7 @@ export function DashboardTable({ opportunities }: DashboardTableProps) {
               <th>Company</th>
               <th>Stage</th>
               <th>Priority</th>
-              <th>Owner</th>
+              <th>Created By</th>
               <th>Close Date</th>
               <th>Value</th>
             </tr>

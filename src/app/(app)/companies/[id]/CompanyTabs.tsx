@@ -68,7 +68,7 @@ export function CompanyTabs({ contacts, opportunities, companyId }: Props) {
         </div>
 
         <Tabs.Content value="contacts">
-          <ContactTable contacts={contacts} showCompany={false} />
+          <ContactTable contacts={contacts} showCompany={false} onRefresh={() => router.refresh()} />
         </Tabs.Content>
 
         <Tabs.Content value="opportunities">

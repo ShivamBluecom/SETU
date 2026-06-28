@@ -3,26 +3,51 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getOpportunityFilter } from '@/lib/query-filters'
 import { CreateOpportunitySchema } from '@/lib/validations/opportunity'
-import { canAssignOwner } from '@/lib/auth'
 import type { SessionUser } from '@/types/api'
 
-export async function GET() {
+const OPP_INCLUDE = {
+  company: { select: { id: true, name: true, industry: true } },
+  primaryContact: { select: { id: true, name: true, designation: true, email: true, phone: true } },
+  createdBy: { select: { id: true, name: true, email: true } },
+  territory: { select: { id: true, name: true } },
+  lineItems: {
+    include: {
+      bu: { select: { id: true, name: true } },
+      buOwner: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { createdAt: 'asc' as const },
+  },
+  serviceAddons: { orderBy: { createdAt: 'asc' as const } },
+  pocs: {
+    select: {
+      userId: true,
+      user: { select: { id: true, name: true, email: true } },
+    },
+  },
+}
+
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const user = session.user as SessionUser
   const filter = getOpportunityFilter(user)
+  const { searchParams } = new URL(req.url)
+  const includeDrafts = searchParams.get('includeDrafts') === 'true'
+
+  const where = includeDrafts
+    ? {
+        OR: [
+          filter,
+          // Always include user's own drafts regardless of role filter
+          { createdById: user.id, status: 'DRAFT' },
+        ],
+      }
+    : { ...filter, status: 'CREATED' }
 
   const opportunities = await prisma.opportunity.findMany({
-    where: filter,
-    include: {
-      company: { select: { id: true, name: true, industry: true } },
-      primaryContact: { select: { id: true, name: true, designation: true, email: true, phone: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
-      buOwner: { select: { id: true, name: true, email: true } },
-      bu: { select: { id: true, name: true } },
-      territory: { select: { id: true, name: true } },
-    },
+    where,
+    include: OPP_INCLUDE,
     orderBy: [{ stage: 'asc' }, { orderIndex: 'asc' }, { updatedAt: 'desc' }],
   })
 
@@ -43,54 +68,23 @@ export async function POST(req: NextRequest) {
 
   const data = parsed.data
 
-  if (data.buOwnerId && !canAssignOwner(user.role)) {
-    return NextResponse.json({ error: 'Forbidden: cannot assign owner' }, { status: 403 })
-  }
-
-  let buOwnerId = data.buOwnerId
-  let territoryId = data.territoryId
-
-  // Auto-assign buOwner: if BU has no BU_HEAD, assign to the first BU_MANAGER
-  if (data.buId && !buOwnerId) {
-    const bu = await prisma.businessUnit.findUnique({
-      where: { id: data.buId },
-      include: {
-        members: {
-          where: { role: { in: ['BU_HEAD', 'BU_MANAGER'] } },
-          select: { id: true, role: true },
-        },
-      },
-    })
-    if (bu) {
-      const hasHead = bu.members.some(m => m.role === 'BU_HEAD')
-      if (!hasHead) {
-        const manager = bu.members.find(m => m.role === 'BU_MANAGER')
-        buOwnerId = manager?.id
-      }
-    }
-  }
-
   const opportunity = await prisma.opportunity.create({
     data: {
       title: data.title,
       description: data.description,
-      value: data.value,
-      currency: data.currency,
       closeDate: data.closeDate ? new Date(data.closeDate) : undefined,
       stage: data.stage,
       priority: data.priority,
-      productService: data.productService,
+      status: data.status,
       companyId: data.companyId,
       primaryContactId: data.primaryContactId,
-      buId: data.buId,
-      territoryId,
+      territoryId: data.territoryId,
       createdById: user.id,
-      buOwnerId,
     },
     include: {
       company: { select: { id: true, name: true, industry: true } },
       createdBy: { select: { id: true, name: true, email: true } },
-      buOwner: { select: { id: true, name: true, email: true } },
+      territory: { select: { id: true, name: true } },
     },
   })
 

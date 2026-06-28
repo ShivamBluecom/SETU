@@ -23,14 +23,10 @@ export function OpportunityRow({ opportunity, onClick }: OpportunityRowProps) {
         <PriorityDot priority={opportunity.priority} />
       </td>
       <td>
-        {opportunity.buOwner ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Avatar name={opportunity.buOwner.name} size="sm" />
-            <span style={{ fontSize: '13px' }}>{opportunity.buOwner.name}</span>
-          </div>
-        ) : (
-          <span style={{ color: 'var(--color-text-3)', fontSize: '13px' }}>Unassigned</span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Avatar name={opportunity.createdBy.name} size="sm" />
+          <span style={{ fontSize: '13px' }}>{opportunity.createdBy.name}</span>
+        </div>
       </td>
       <td>
         <span style={{ color: 'var(--color-text-2)', fontSize: '13px' }}>

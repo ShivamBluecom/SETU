@@ -1,11 +1,13 @@
+import { Pencil } from 'lucide-react'
 import type { Contact, Company } from '@prisma/client'
 
 interface ContactRowProps {
   contact: Contact & { company: Pick<Company, 'id' | 'name'> }
   showCompany?: boolean
+  onEdit?: (contact: Contact & { company: Pick<Company, 'id' | 'name'> }) => void
 }
 
-export function ContactRow({ contact, showCompany = true }: ContactRowProps) {
+export function ContactRow({ contact, showCompany = true, onEdit }: ContactRowProps) {
   return (
     <tr>
       <td style={{ color: 'var(--color-text-1)', fontWeight: 500 }}>{contact.name}</td>
@@ -21,6 +23,17 @@ export function ContactRow({ contact, showCompany = true }: ContactRowProps) {
         )}
       </td>
       <td>{contact.phone ?? <span style={{ color: 'var(--color-text-3)' }}>—</span>}</td>
+      {onEdit && (
+        <td style={{ width: '40px' }}>
+          <button
+            onClick={() => onEdit(contact)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}
+            title="Edit contact"
+          >
+            <Pencil size={14} />
+          </button>
+        </td>
+      )}
     </tr>
   )
 }

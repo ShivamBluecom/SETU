@@ -7,8 +7,8 @@ import type { UserRole } from '@/types/enums'
 
 const UpdateUserSchema = z.object({
   role: z.enum(['ISR', 'ACCOUNT_MANAGER', 'BU_MANAGER', 'BU_HEAD', 'TERRITORY_MANAGER', 'ADMIN'] as const).optional(),
-  buId: z.string().nullable().optional(),
-  territoryId: z.string().nullable().optional(),
+  buId: z.string().nullable().optional(),       // BU_HEAD single scalar assignment only
+  territoryId: z.string().nullable().optional(), // TERRITORY_MANAGER single scalar assignment only
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
   }
 
-  // Self-demotion guard: block removing ADMIN if it would leave zero admins
+  // Self-demotion guard
   if (parsed.data.role && parsed.data.role !== 'ADMIN') {
     const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true } })
     if (target?.role === 'ADMIN') {
@@ -40,8 +40,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (parsed.data.buId !== undefined) data.buId = parsed.data.buId
   if (parsed.data.territoryId !== undefined) data.territoryId = parsed.data.territoryId
 
-  // Auto-clear role-irrelevant fields when role changes
-  if (data.role === 'ACCOUNT_MANAGER') {
+  // Auto-clear scalar fields on role change
+  // ISR/BU_MANAGER/AM use junction tables; their buId/territoryId scalars should be null
+  if (data.role === 'ACCOUNT_MANAGER' || data.role === 'ISR' || data.role === 'BU_MANAGER') {
     data.buId = null
     data.territoryId = null
   } else if (data.role === 'BU_HEAD') {
@@ -56,6 +57,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     include: {
       bu: { select: { id: true, name: true } },
       territory: { select: { id: true, name: true } },
+      assignedBUs: { include: { bu: { select: { id: true, name: true } } } },
+      assignedTerritories: { include: { territory: { select: { id: true, name: true } } } },
     },
   })
 

@@ -10,6 +10,8 @@ declare module 'next-auth' {
       role: UserRole
       buId: string | null
       territoryId: string | null
+      buIds: string[]
+      territoryIds: string[]
     }
   }
 }
@@ -20,5 +22,7 @@ declare module 'next-auth/jwt' {
     role: UserRole
     buId: string | null
     territoryId: string | null
+    buIds: string[]
+    territoryIds: string[]
   }
 }

@@ -11,12 +11,13 @@ export default async function AdminPage() {
   const user = session.user as SessionUser
   if (user.role !== 'ADMIN') redirect('/dashboard')
 
-  const [users, businessUnits, territories, companies, opportunities] = await Promise.all([
+  const [users, businessUnits, territories, opportunities, oemConfigs] = await Promise.all([
     prisma.user.findMany({
       include: {
         bu: { select: { id: true, name: true } },
         territory: { select: { id: true, name: true } },
-        managedCompanies: { select: { id: true, name: true } },
+        assignedBUs: { include: { bu: { select: { id: true, name: true } } } },
+        assignedTerritories: { include: { territory: { select: { id: true, name: true } } } },
       },
       orderBy: { name: 'asc' },
     }),
@@ -37,21 +38,19 @@ export default async function AdminPage() {
       },
       orderBy: { name: 'asc' },
     }),
-    prisma.company.findMany({
-      select: { id: true, name: true, accountManagerId: true },
-      orderBy: { name: 'asc' },
-    }),
     prisma.opportunity.findMany({
       select: {
         stage: true,
         priority: true,
         value: true,
         createdAt: true,
+        status: true,
         territory: { select: { name: true } },
-        bu: { select: { name: true } },
-        buOwner: { select: { name: true } },
+        lineItems: { select: { bu: { select: { name: true } }, totalValue: true } },
+        createdBy: { select: { name: true } },
       },
     }),
+    prisma.oemConfig.findMany({ orderBy: [{ buType: 'asc' }, { name: 'asc' }] }),
   ])
 
   return (
@@ -63,8 +62,8 @@ export default async function AdminPage() {
         users={users}
         businessUnits={businessUnits}
         territories={territories}
-        companies={companies}
         opportunities={opportunities}
+        oemConfigs={oemConfigs}
         currentUserId={user.id}
       />
     </div>

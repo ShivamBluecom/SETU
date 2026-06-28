@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
+  List,
   Columns,
   Building2,
   Users,
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/opportunities', icon: List, label: 'Opportunities' },
   { href: '/pipeline', icon: Columns, label: 'Pipeline' },
   { href: '/companies', icon: Building2, label: 'Companies' },
   { href: '/contacts', icon: Users, label: 'Contacts' },

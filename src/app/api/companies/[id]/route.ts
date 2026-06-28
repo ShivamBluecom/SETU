@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getOpportunityFilter } from '@/lib/query-filters'
+import { UpdateCompanySchema } from '@/lib/validations/company'
 import type { SessionUser } from '@/types/api'
-import { z } from 'zod'
-
-const UpdateCompanySchema = z.object({
-  accountManagerId: z.string().nullable().optional(),
-})
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
@@ -23,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const company = await prisma.company.update({
     where: { id: params.id },
     data: parsed.data,
-    select: { id: true, name: true, accountManagerId: true },
+    include: { territory: { select: { id: true, name: true } } },
   })
 
   return NextResponse.json(company)
@@ -45,14 +41,18 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         orderBy: { name: 'asc' },
       },
       opportunities: {
-        where: oppFilter,
+        where: { ...oppFilter, status: 'CREATED' },
         include: {
           company: { select: { id: true, name: true, industry: true } },
           primaryContact: { select: { id: true, name: true, designation: true, email: true, phone: true } },
           createdBy: { select: { id: true, name: true, email: true } },
-          buOwner: { select: { id: true, name: true, email: true } },
-          bu: { select: { id: true, name: true } },
           territory: { select: { id: true, name: true } },
+          lineItems: {
+            include: {
+              bu: { select: { id: true, name: true } },
+              buOwner: { select: { id: true, name: true, email: true } },
+            },
+          },
         },
         orderBy: { updatedAt: 'desc' },
       },

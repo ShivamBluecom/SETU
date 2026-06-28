@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   DndContext,
   DragEndEvent,
@@ -10,10 +11,8 @@ import {
   closestCenter,
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
-import { Plus } from 'lucide-react'
 import { KanbanCard } from '@/components/opportunities/KanbanCard'
 import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
-import { NewOpportunityModal } from '@/components/opportunities/NewOpportunityModal'
 import { useToast } from '@/contexts/ToastContext'
 import type { OpportunityWithRelations } from '@/types/api'
 import type { OpportunityStage } from '@/types/enums'
@@ -34,18 +33,18 @@ const COLUMN_HEADER_STYLES: Partial<Record<OpportunityStage, React.CSSProperties
 
 export default function PipelinePage() {
   const { showToast } = useToast()
+  const router = useRouter()
   const [opps, setOpps] = useState<OpportunityWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [newModalStage, setNewModalStage] = useState<OpportunityStage | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/opportunities')
+      const res = await fetch('/api/opportunities?includeDrafts=true')
       const data = await res.json()
       setOpps(data)
     } finally {
@@ -91,11 +90,29 @@ export default function PipelinePage() {
     }
   }
 
+  const handleCardClick = (opp: OpportunityWithRelations) => {
+    if (opp.status === 'DRAFT') {
+      router.push(`/opportunities/new?id=${opp.id}`)
+    } else {
+      setSelectedId(opp.id)
+      setDrawerOpen(true)
+    }
+  }
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <h1 style={{ margin: '0 0 20px', fontSize: '18px', fontWeight: 600, color: 'var(--color-text-1)', flexShrink: 0 }}>
-        Pipeline
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexShrink: 0 }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--color-text-1)' }}>
+          Pipeline
+        </h1>
+        <button
+          className="btn-primary"
+          onClick={() => router.push('/opportunities/new')}
+          style={{ fontSize: '13px', padding: '6px 14px' }}
+        >
+          New Opportunity
+        </button>
+      </div>
 
       {loading ? (
         <p style={{ color: 'var(--color-text-3)', fontSize: '13px' }}>Loading…</p>
@@ -130,7 +147,6 @@ export default function PipelinePage() {
                     overflow: 'hidden',
                   }}
                 >
-                  {/* Column header */}
                   <div
                     style={{
                       ...headerStyle,
@@ -143,38 +159,11 @@ export default function PipelinePage() {
                     <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em' }}>
                       {label}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '12px',
-                          opacity: 0.7,
-                        }}
-                      >
-                        {cards.length}
-                      </span>
-                      <button
-                        onClick={() => setNewModalStage(stage)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '4px',
-                          background: 'rgba(0,0,0,0.1)',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'inherit',
-                        }}
-                        title={`New ${label} opportunity`}
-                      >
-                        <Plus size={12} />
-                      </button>
-                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', opacity: 0.7 }}>
+                      {cards.length}
+                    </span>
                   </div>
 
-                  {/* Cards */}
                   <div
                     style={{
                       flex: 1,
@@ -195,7 +184,7 @@ export default function PipelinePage() {
                         <KanbanCard
                           key={opp.id}
                           opportunity={opp}
-                          onClick={() => { setSelectedId(opp.id); setDrawerOpen(true) }}
+                          onClick={() => handleCardClick(opp)}
                         />
                       ))}
                     </SortableContext>
@@ -218,15 +207,6 @@ export default function PipelinePage() {
         onClose={() => setDrawerOpen(false)}
         onUpdated={load}
       />
-
-      {newModalStage && (
-        <NewOpportunityModal
-          open={true}
-          onOpenChange={(o) => { if (!o) setNewModalStage(null) }}
-          defaultStage={newModalStage}
-          onCreated={load}
-        />
-      )}
     </div>
   )
 }

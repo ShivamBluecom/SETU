@@ -31,17 +31,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, account }) {
-      // Populate token on first sign-in OR if role is missing (stale token / DB error recovery)
-      if ((account || !token.role) && token.email) {
+      // Refresh from DB on sign-in, if role missing, or if data is stale (>5 min)
+      const stale = !token.lastRefreshed || (Date.now() - (token.lastRefreshed as number)) > 5 * 60 * 1000
+      if ((account || !token.role || stale) && token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
-          select: { id: true, role: true, buId: true, territoryId: true },
+          select: {
+            id: true,
+            role: true,
+            buId: true,
+            territoryId: true,
+            assignedBUs: { select: { buId: true } },
+            assignedTerritories: { select: { territoryId: true } },
+          },
         })
         if (dbUser) {
           token.userId = dbUser.id
           token.role = dbUser.role as UserRole
           token.buId = dbUser.buId
           token.territoryId = dbUser.territoryId
+          token.buIds = dbUser.assignedBUs.map(r => r.buId)
+          token.territoryIds = dbUser.assignedTerritories.map(r => r.territoryId)
+          token.lastRefreshed = Date.now()
         }
       }
       return token
@@ -53,6 +64,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as UserRole
         session.user.buId = (token.buId as string | null) ?? null
         session.user.territoryId = (token.territoryId as string | null) ?? null
+        session.user.buIds = (token.buIds as string[]) ?? []
+        session.user.territoryIds = (token.territoryIds as string[]) ?? []
       }
       return session
     },
@@ -61,10 +74,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 export function canCreate(_role: UserRole): boolean {
   return true
-}
-
-export function canAssignOwner(role: UserRole): boolean {
-  return ['BU_HEAD', 'TERRITORY_MANAGER', 'ADMIN'].includes(role)
 }
 
 export function isStakeholder(role: UserRole): boolean {

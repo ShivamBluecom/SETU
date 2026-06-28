@@ -29,8 +29,6 @@ export default async function CompanyDetailPage({ params }: Props) {
           company: { select: { id: true, name: true, industry: true } },
           primaryContact: { select: { id: true, name: true, designation: true, email: true, phone: true } },
           createdBy: { select: { id: true, name: true, email: true } },
-          buOwner: { select: { id: true, name: true, email: true } },
-          bu: { select: { id: true, name: true } },
           territory: { select: { id: true, name: true } },
         },
         orderBy: { updatedAt: 'desc' },

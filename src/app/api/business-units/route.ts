@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 const CreateBUSchema = z.object({
   name: z.string().min(1),
+  buType: z.enum(['ISG', 'NETWORKING_AV', 'ISS', 'BC_MICROSOFT', 'CLOUD']).optional(),
 })
 
 export async function GET() {

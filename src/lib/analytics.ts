@@ -7,8 +7,8 @@ export interface AnalyticsOpportunity {
   value: number | Decimal | string
   createdAt: Date | string
   territory: { name: string } | null
-  bu: { name: string } | null
-  buOwner: { name: string } | null
+  lineItems: Array<{ bu: { name: string }; totalValue: number | Decimal | string }>
+  createdBy?: { name: string } | null
 }
 
 export interface BreakdownRow {
@@ -57,11 +57,21 @@ export function groupByTerritory(opps: AnalyticsOpportunity[]): BreakdownRow[] {
 }
 
 export function groupByBusinessUnit(opps: AnalyticsOpportunity[]): BreakdownRow[] {
-  return groupBy(opps, o => o.bu?.name ?? null)
+  const rows = new Map<string, BreakdownRow>()
+  for (const o of opps) {
+    for (const li of o.lineItems) {
+      const label = li.bu.name
+      const row = rows.get(label) ?? { label, count: 0, value: 0 }
+      row.count += 1
+      row.value += Number(li.totalValue)
+      rows.set(label, row)
+    }
+  }
+  return Array.from(rows.values()).sort((a, b) => b.value - a.value)
 }
 
 export function groupByOwner(opps: AnalyticsOpportunity[], topN = 8): BreakdownRow[] {
-  return groupBy(opps, o => o.buOwner?.name ?? null).slice(0, topN)
+  return groupBy(opps, o => o.createdBy?.name ?? null).slice(0, topN)
 }
 
 export function monthlyTrend(opps: AnalyticsOpportunity[], months = 6): TrendPoint[] {

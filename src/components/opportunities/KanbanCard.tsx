@@ -4,7 +4,6 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { OpportunityWithRelations } from '@/types/api'
 import { PriorityDot } from '@/components/ui/PriorityDot'
-import { Avatar } from '@/components/ui/Avatar'
 import { formatINR, formatDate } from '@/lib/format'
 
 interface KanbanCardProps {
@@ -15,6 +14,8 @@ interface KanbanCardProps {
 export function KanbanCard({ opportunity, onClick }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: opportunity.id })
+
+  const isDraft = opportunity.status === 'DRAFT'
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -28,11 +29,12 @@ export function KanbanCard({ opportunity, onClick }: KanbanCardProps) {
       style={{
         ...style,
         background: 'var(--color-bg)',
-        border: '0.5px solid var(--color-border)',
+        border: `0.5px solid ${isDraft ? 'var(--color-border)' : 'var(--color-border)'}`,
         borderRadius: '6px',
         padding: '12px',
         cursor: 'pointer',
         position: 'relative',
+        opacity: isDraft ? 0.75 : 1,
       }}
       {...attributes}
       {...listeners}
@@ -41,13 +43,16 @@ export function KanbanCard({ opportunity, onClick }: KanbanCardProps) {
         onClick()
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-        }}
-      >
+      <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {isDraft && (
+          <span style={{
+            fontSize: '9px', fontWeight: 600, padding: '1px 5px', borderRadius: '3px',
+            background: 'var(--color-surface-2)', color: 'var(--color-text-3)',
+            textTransform: 'uppercase', letterSpacing: '0.05em', border: '0.5px solid var(--color-border)',
+          }}>
+            Draft
+          </span>
+        )}
         <PriorityDot priority={opportunity.priority} />
       </div>
 
@@ -57,7 +62,7 @@ export function KanbanCard({ opportunity, onClick }: KanbanCardProps) {
           fontSize: '15px',
           fontWeight: 600,
           color: 'var(--color-text-1)',
-          paddingRight: '16px',
+          paddingRight: isDraft ? '60px' : '16px',
           lineHeight: 1.3,
         }}
       >
@@ -91,15 +96,11 @@ export function KanbanCard({ opportunity, onClick }: KanbanCardProps) {
         >
           {formatINR(opportunity.value)}
         </span>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {opportunity.closeDate && (
-            <span style={{ fontSize: '11px', color: 'var(--color-text-3)' }}>
-              {formatDate(opportunity.closeDate)}
-            </span>
-          )}
-          {opportunity.buOwner && <Avatar name={opportunity.buOwner.name} size="sm" />}
-        </div>
+        {opportunity.closeDate && (
+          <span style={{ fontSize: '11px', color: 'var(--color-text-3)' }}>
+            {formatDate(opportunity.closeDate)}
+          </span>
+        )}
       </div>
     </div>
   )

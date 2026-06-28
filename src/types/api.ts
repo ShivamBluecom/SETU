@@ -7,6 +7,9 @@ import type {
   Territory,
   Note,
   Notification,
+  LineItem,
+  ServiceAddon,
+  OpportunityPoc,
 } from '@prisma/client'
 import type { UserRole, OpportunityStage } from '@/types/enums'
 
@@ -17,24 +20,31 @@ export type SessionUser = {
   name?: string | null
   email?: string | null
   role: UserRole
-  buId: string | null
-  territoryId: string | null
+  buId: string | null          // BU_HEAD only (scalar single assignment)
+  territoryId: string | null   // TERRITORY_MANAGER only (scalar single assignment)
+  buIds: string[]              // ISR, BU_MANAGER (multi-BU via junction table)
+  territoryIds: string[]       // ACCOUNT_MANAGER (multi-territory via junction table)
 }
 
-// Prisma returns `string` for stage/priority since SQL Server doesn't support enums.
-// We use `string` here and rely on Zod validation at API boundaries.
 export type OpportunityWithRelations = Omit<Opportunity, 'stage' | 'priority'> & {
   stage: string
   priority: string
+  status: string
   company: Pick<Company, 'id' | 'name' | 'industry'>
   primaryContact: Pick<Contact, 'id' | 'name' | 'designation' | 'email' | 'phone'> | null
   createdBy: Pick<User, 'id' | 'name' | 'email'>
-  buOwner: Pick<User, 'id' | 'name' | 'email'> | null
-  bu: Pick<BusinessUnit, 'id' | 'name'> | null
   territory: Pick<Territory, 'id' | 'name'> | null
   notes?: NoteWithAuthor[]
-  shares?: Array<{ userId: string; user: { id: string; name: string; email: string } }>
-  _count?: { shares: number }
+  pocs?: Array<{ userId: string; user: { id: string; name: string; email: string } }>
+  lineItems?: LineItemWithRelations[]
+  serviceAddons?: ServiceAddon[]
+  additionalContacts?: Array<{ contactId: string; contact: { id: string; name: string; designation: string | null; email: string | null } }>
+  _count?: { pocs: number }
+}
+
+export type LineItemWithRelations = LineItem & {
+  bu: Pick<BusinessUnit, 'id' | 'name'> & { buType?: string | null; members?: Array<{ id: string; name: string }> }
+  buOwner: Pick<User, 'id' | 'name' | 'email'> | null
 }
 
 export type NoteWithAuthor = Note & {
@@ -57,6 +67,8 @@ export type NotificationWithOpportunity = Notification & {
 export type UserWithRelations = User & {
   bu: Pick<BusinessUnit, 'id' | 'name'> | null
   territory: Pick<Territory, 'id' | 'name'> | null
+  assignedBUs: Array<{ buId: string; bu: Pick<BusinessUnit, 'id' | 'name'> }>
+  assignedTerritories: Array<{ territoryId: string; territory: Pick<Territory, 'id' | 'name'> }>
 }
 
 export type KanbanColumn = {
