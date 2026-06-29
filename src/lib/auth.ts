@@ -32,6 +32,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, account }) {
+      // Middleware runs in Edge Runtime where Prisma (TCP) is unavailable — skip DB refresh there.
+      // The token already carries role/buId from the last Node.js-context refresh.
+      if (process.env.NEXT_RUNTIME === 'edge') return token
+
       // Refresh from DB on sign-in, if role missing, or if data is stale (>5 min)
       const stale = !token.lastRefreshed || (Date.now() - (token.lastRefreshed as number)) > 5 * 60 * 1000
       if ((account || !token.role || stale) && token.email) {
