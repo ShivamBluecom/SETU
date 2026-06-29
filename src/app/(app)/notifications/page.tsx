@@ -67,7 +67,13 @@ export default async function NotificationsPage() {
                   {n.opportunity.company.name}
                 </p>
               </div>
-              <StageBadge stage={n.stage} />
+              {n.stage ? (
+                <StageBadge stage={n.stage} />
+              ) : (
+                <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 7px', borderRadius: '4px', background: 'var(--color-surface-2)', color: 'var(--color-text-3)', border: '0.5px solid var(--color-border)' }}>
+                  New Line Item
+                </span>
+              )}
               <span style={{ fontSize: '11px', color: 'var(--color-text-3)', flexShrink: 0 }}>
                 {formatRelativeTime(n.createdAt)}
               </span>
