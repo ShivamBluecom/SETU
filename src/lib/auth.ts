@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import type { UserRole } from '@/types/enums'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     MicrosoftEntraID({
       clientId: process.env.AZURE_AD_CLIENT_ID!,
