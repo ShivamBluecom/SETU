@@ -11,7 +11,7 @@ export default async function OpportunitiesPage() {
   const user = session.user as SessionUser
   const filter = getOpportunityFilter(user)
 
-  const opportunities = await prisma.opportunity.findMany({
+  const raw = await prisma.opportunity.findMany({
     where: {
       AND: [
         filter,
@@ -37,6 +37,8 @@ export default async function OpportunitiesPage() {
     },
     orderBy: { updatedAt: 'desc' },
   })
+
+  const opportunities = raw.map(o => ({ ...o, value: o.value.toNumber() }))
 
   return (
     <div>
