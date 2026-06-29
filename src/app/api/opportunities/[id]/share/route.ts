@@ -5,10 +5,7 @@ import type { SessionUser } from '@/types/api'
 
 async function requireOwner(oppId: string, userId: string) {
   return prisma.opportunity.findFirst({
-    where: {
-      id: oppId,
-      OR: [{ createdById: userId }, { buOwnerId: userId }],
-    },
+    where: { id: oppId, createdById: userId },
     select: { id: true },
   })
 }
@@ -24,10 +21,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { userId } = await req.json()
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-  await prisma.opportunityShare.upsert({
+  await prisma.opportunityPoc.upsert({
     where: { opportunityId_userId: { opportunityId: params.id, userId } },
     update: {},
-    create: { opportunityId: params.id, userId },
+    create: { opportunityId: params.id, userId, addedById: user.id },
   })
 
   return NextResponse.json({ ok: true })
@@ -44,7 +41,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { userId } = await req.json()
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-  await prisma.opportunityShare.deleteMany({
+  await prisma.opportunityPoc.deleteMany({
     where: { opportunityId: params.id, userId },
   })
 
