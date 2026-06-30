@@ -165,40 +165,7 @@ export default function LoginPage() {
             await signIn('microsoft-entra-id', { redirectTo: '/dashboard' })
           }}
         >
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              background: 'var(--gradient-brand)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '10px',
-              padding: '12px 20px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              letterSpacing: '0.01em',
-              boxShadow: '0 2px 12px rgba(13,148,136,0.35), 0 1px 3px rgba(8,145,178,0.25)',
-              transition: 'opacity 150ms, transform 120ms, box-shadow 150ms',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.opacity = '0.9'
-              e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.boxShadow =
-                '0 6px 20px rgba(13,148,136,0.45), 0 2px 6px rgba(8,145,178,0.3)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.opacity = '1'
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow =
-                '0 2px 12px rgba(13,148,136,0.35), 0 1px 3px rgba(8,145,178,0.25)'
-            }}
-          >
+          <button type="submit" className="btn-login">
             <MicrosoftIcon />
             Sign in with Microsoft
           </button>
