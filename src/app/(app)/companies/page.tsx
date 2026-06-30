@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { CompanyTable } from '@/components/companies/CompanyTable'
 import { NewCompanyButton } from './NewCompanyButton'
+import { BulkImportButton } from '@/components/companies/BulkImportButton'
 import type { CompanyWithCounts } from '@/types/api'
 
 export default async function CompaniesPage() {
@@ -32,7 +33,10 @@ export default async function CompaniesPage() {
         <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--color-text-1)' }}>
           Companies
         </h1>
-        <NewCompanyButton />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <BulkImportButton />
+          <NewCompanyButton />
+        </div>
       </div>
       <CompanyTable companies={enriched} />
     </div>
