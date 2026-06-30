@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Bell, LogOut } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { Avatar } from '@/components/ui/Avatar'
@@ -26,19 +27,46 @@ const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: 'Admin',
 }
 
+const ROLE_COLORS: Record<UserRole, { bg: string; color: string }> = {
+  ADMIN:              { bg: 'rgba(124,58,237,0.1)',  color: '#7c3aed' },
+  TERRITORY_MANAGER:  { bg: 'rgba(8,145,178,0.1)',   color: '#0891b2' },
+  BU_HEAD:            { bg: 'rgba(13,148,136,0.1)',   color: '#0d9488' },
+  BU_MANAGER:         { bg: 'rgba(22,163,74,0.1)',    color: '#16a34a' },
+  ACCOUNT_MANAGER:    { bg: 'rgba(217,119,6,0.12)',   color: '#d97706' },
+  ISR:                { bg: 'rgba(100,116,139,0.1)',  color: '#64748b' },
+}
+
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard':     'Dashboard',
+  '/opportunities': 'Opportunities',
+  '/pipeline':      'Pipeline',
+  '/companies':     'Companies',
+  '/contacts':      'Contacts',
+  '/notifications': 'Notifications',
+  '/admin':         'Admin',
+}
+
+function getTitle(pathname: string): string {
+  for (const [path, title] of Object.entries(PAGE_TITLES)) {
+    if (pathname === path || (path !== '/dashboard' && pathname.startsWith(path))) {
+      return title
+    }
+  }
+  return 'SETU'
+}
+
 function UserMenu({ user }: { user: TopbarProps['user'] }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const roleStyle = ROLE_COLORS[user.role]
 
   useEffect(() => {
     if (!open) return
-    function handleOutsideClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handleOutsideClick)
-    return () => document.removeEventListener('mousedown', handleOutsideClick)
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
   }, [open])
 
   return (
@@ -55,6 +83,7 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
           borderRadius: '50%',
           outline: open ? '2px solid var(--color-accent)' : 'none',
           outlineOffset: '2px',
+          transition: 'outline 150ms',
         }}
         aria-label="User menu"
         aria-expanded={open}
@@ -66,25 +95,27 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
         <div
           style={{
             position: 'absolute',
-            top: 'calc(100% + 8px)',
+            top: 'calc(100% + 10px)',
             right: 0,
             background: 'var(--color-surface)',
-            border: '0.5px solid var(--color-border)',
-            borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
-            minWidth: '220px',
+            border: '1px solid var(--color-border)',
+            borderRadius: '12px',
+            boxShadow: 'var(--shadow-xl)',
+            minWidth: '240px',
             overflow: 'hidden',
-            zIndex: 50,
+            zIndex: 100,
+            animation: 'fade-in-up 180ms ease forwards',
           }}
         >
           {/* User info */}
           <div
             style={{
-              padding: '14px 16px',
-              borderBottom: '0.5px solid var(--color-border)',
+              padding: '16px',
+              borderBottom: '1px solid var(--color-border)',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '12px',
+              background: 'var(--gradient-brand-subtle)',
             }}
           >
             <Avatar name={user.name ?? user.email ?? ''} size="md" />
@@ -117,11 +148,11 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
             </div>
           </div>
 
-          {/* Role label */}
+          {/* Role badge */}
           <div
             style={{
-              padding: '8px 16px',
-              borderBottom: '0.5px solid var(--color-border)',
+              padding: '10px 16px',
+              borderBottom: '1px solid var(--color-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -131,14 +162,13 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 500,
-                letterSpacing: '0.06em',
+                fontWeight: 600,
+                letterSpacing: '0.05em',
                 textTransform: 'uppercase',
-                color: 'var(--color-text-2)',
-                background: 'var(--color-surface-2)',
-                padding: '2px 8px',
-                borderRadius: '4px',
-                border: '0.5px solid var(--color-border)',
+                color: roleStyle.color,
+                background: roleStyle.bg,
+                padding: '3px 9px',
+                borderRadius: '20px',
               }}
             >
               {ROLE_LABELS[user.role]}
@@ -152,8 +182,8 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
               width: '100%',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
+              gap: '9px',
+              padding: '11px 16px',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -161,11 +191,12 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
               color: 'var(--color-danger)',
               textAlign: 'left',
               fontFamily: 'inherit',
+              transition: 'background 150ms',
             }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(220,38,38,0.06)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            <LogOut size={14} strokeWidth={1.75} />
+            <LogOut size={14} strokeWidth={2} />
             Sign out
           </button>
         </div>
@@ -175,51 +206,71 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
 }
 
 export function Topbar({ user }: TopbarProps) {
+  const pathname = usePathname()
+  const title = getTitle(pathname)
+
   return (
     <header
+      className="glass"
       style={{
-        height: '48px',
-        background: 'var(--color-surface)',
-        borderBottom: '0.5px solid var(--color-border)',
+        height: 'var(--topbar-height)',
+        borderBottom: '1px solid rgba(0,0,0,0.07)',
+        boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 16px',
+        padding: '0 24px',
         gap: '12px',
         flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
       }}
     >
-      <span
-        style={{
-          fontFamily: 'var(--font-grotesk)',
-          fontWeight: 600,
-          fontSize: '15px',
-          letterSpacing: '1.5px',
-          color: 'var(--color-text-1)',
-          flexShrink: 0,
-        }}
-      >
-        SETU
-      </span>
+      {/* Page title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: '15px',
+            fontWeight: 600,
+            color: 'var(--color-text-1)',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {title}
+        </h2>
+      </div>
 
       <div style={{ flex: 1 }} />
 
+      {/* Notifications */}
       <Link
         href="/notifications"
+        title="Notifications"
         style={{
           color: 'var(--color-text-2)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '32px',
-          height: '32px',
-          borderRadius: '6px',
-          border: '0.5px solid var(--color-border)',
+          width: '36px',
+          height: '36px',
+          borderRadius: '10px',
+          border: '1px solid var(--color-border)',
           background: 'var(--color-surface)',
           textDecoration: 'none',
+          boxShadow: 'var(--shadow-xs)',
+          transition: 'box-shadow 150ms, background 150ms',
         }}
-        title="Notifications"
+        onMouseEnter={e => {
+          ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'
+          ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'
+        }}
+        onMouseLeave={e => {
+          ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'
+          ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface)'
+        }}
       >
-        <Bell size={15} strokeWidth={1.5} />
+        <Bell size={15} strokeWidth={1.75} />
       </Link>
 
       <UserMenu user={user} />
