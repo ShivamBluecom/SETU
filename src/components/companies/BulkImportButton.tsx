@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { Upload, X, CheckCircle, AlertCircle, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/contexts/ToastContext'
+import * as XLSX from 'xlsx'
 
 interface Territory { id: string; name: string }
 
@@ -43,10 +44,7 @@ function normalizeWebsite(val: string): string {
   return 'https://' + val
 }
 
-function parseFile(buffer: ArrayBuffer, fileName: string): string[][] {
-  // Dynamic import of xlsx to avoid SSR issues
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const XLSX = require('xlsx')
+function parseFile(buffer: ArrayBuffer): string[][] {
   const wb = XLSX.read(buffer, { type: 'array' })
   const sheet = wb.Sheets[wb.SheetNames[0]]
   const rows: string[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
@@ -388,7 +386,7 @@ export function BulkImportButton() {
 
     const buffer = await file.arrayBuffer()
     try {
-      const raw = parseFile(buffer, file.name)
+      const raw = parseFile(buffer)
       const parsed = buildRows(raw, territories)
       if (parsed.length === 0) {
         showToast('No data rows found in file', 'error')
