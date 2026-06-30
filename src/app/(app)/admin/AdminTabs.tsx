@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Avatar } from '@/components/ui/Avatar'
 import { KPICard } from '@/components/ui/KPICard'
@@ -95,8 +95,35 @@ const chipStyle: React.CSSProperties = {
   border: '0.5px solid var(--color-border)',
 }
 
+const filterInputStyle: React.CSSProperties = {
+  fontSize: '13px',
+  padding: '6px 10px',
+  borderRadius: '8px',
+  border: '1px solid var(--color-border)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text-1)',
+  fontFamily: 'inherit',
+  height: '32px',
+  boxShadow: 'var(--shadow-xs)',
+  width: 'auto',
+}
+
 export function AdminTabs({ users, businessUnits, territories, oemConfigs, opportunities, currentUserId }: AdminTabsProps) {
   const [tab, setTab] = useState('users')
+
+  // User filter state
+  const [userSearch, setUserSearch] = useState('')
+  const [userRoleFilter, setUserRoleFilter] = useState('')
+  const [userBUFilter, setUserBUFilter] = useState('')
+  const [userTerritoryFilter, setUserTerritoryFilter] = useState('')
+
+  const hasUserFilters = userSearch || userRoleFilter || userBUFilter || userTerritoryFilter
+  const clearUserFilters = () => {
+    setUserSearch('')
+    setUserRoleFilter('')
+    setUserBUFilter('')
+    setUserTerritoryFilter('')
+  }
   const [newTerritoryName, setNewTerritoryName] = useState('')
   const [newBUName, setNewBUName] = useState('')
   const [newBUType, setNewBUType] = useState('')
@@ -131,6 +158,27 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
     acc[bt] = oemConfigs.filter(c => c.buType === bt)
     return acc
   }, {} as Record<string, typeof oemConfigs>)
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => {
+      if (userSearch) {
+        const q = userSearch.toLowerCase()
+        if (!u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false
+      }
+      if (userRoleFilter && u.role !== userRoleFilter) return false
+      if (userBUFilter) {
+        const has = u.assignedBUs.some(a => a.bu.id === userBUFilter) || u.buId === userBUFilter
+        if (!has) return false
+      }
+      if (userTerritoryFilter) {
+        const has =
+          u.assignedTerritories.some(a => a.territory.id === userTerritoryFilter) ||
+          u.territoryId === userTerritoryFilter
+        if (!has) return false
+      }
+      return true
+    })
+  }, [users, userSearch, userRoleFilter, userBUFilter, userTerritoryFilter])
 
   const patchUser = async (userId: string, data: Record<string, unknown>, label: string) => {
     const res = await fetch(`/api/users/${userId}`, {
@@ -265,6 +313,53 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
       </div>
 
       <Tabs.Content value="users">
+        {/* Filter bar */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }}>
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              placeholder="Search name or email…"
+              style={{ ...filterInputStyle, paddingLeft: '28px', width: '220px', height: '32px' }}
+            />
+          </div>
+          <select value={userRoleFilter} onChange={e => setUserRoleFilter(e.target.value)} style={filterInputStyle}>
+            <option value="">All roles</option>
+            {ALL_ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+          </select>
+          {businessUnits.length > 0 && (
+            <select value={userBUFilter} onChange={e => setUserBUFilter(e.target.value)} style={filterInputStyle}>
+              <option value="">All BUs</option>
+              {businessUnits.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          )}
+          {territories.length > 0 && (
+            <select value={userTerritoryFilter} onChange={e => setUserTerritoryFilter(e.target.value)} style={filterInputStyle}>
+              <option value="">All territories</option>
+              {territories.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          )}
+          {hasUserFilters && (
+            <button
+              onClick={clearUserFilters}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', fontFamily: 'inherit' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-danger)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-3)')}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              Clear
+            </button>
+          )}
+          {hasUserFilters && (
+            <span style={{ fontSize: '12px', color: 'var(--color-text-3)', marginLeft: '4px' }}>
+              {filteredUsers.length} of {users.length} users
+            </span>
+          )}
+        </div>
+
         <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
           <table>
             <thead>
@@ -276,7 +371,9 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
               </tr>
             </thead>
             <tbody>
-              {users.map(u => {
+              {filteredUsers.length === 0 ? (
+                <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-3)', padding: '32px' }}>No users match the current filters.</td></tr>
+              ) : filteredUsers.map(u => {
                 const role = u.role as UserRole
                 const showBUChips = role === 'ISR' || role === 'BU_MANAGER'
                 const showBUSelect = role === 'BU_HEAD'
@@ -394,6 +491,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
       </Tabs.Content>
 
       <Tabs.Content value="business-units">
+
         <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input value={newBUName} onChange={e => setNewBUName(e.target.value)} placeholder="New business unit name"
             style={{ maxWidth: '240px' }}
