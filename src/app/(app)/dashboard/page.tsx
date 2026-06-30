@@ -3,11 +3,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getOpportunityFilter } from '@/lib/query-filters'
 import { KPICard } from '@/components/ui/KPICard'
-import { StageBlocks } from '@/components/ui/StageBlocks'
-import { BarList } from '@/components/ui/charts/BarList'
-import { TrendChart } from '@/components/ui/charts/TrendChart'
-import { DashboardTable } from './DashboardTable'
-import { formatINR, formatINRCompact } from '@/lib/format'
+import { DashboardClient } from './DashboardClient'
+import { formatINR } from '@/lib/format'
 import { groupByPriority, groupByTerritory, groupByBusinessUnit, monthlyTrend } from '@/lib/analytics'
 import type { SessionUser } from '@/types/api'
 
@@ -29,17 +26,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       {children}
       <span style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
     </p>
-  )
-}
-
-function ChartCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="card-3d"
-      style={{ padding: '22px 24px' }}
-    >
-      {children}
-    </div>
   )
 }
 
@@ -86,8 +72,9 @@ export default async function DashboardPage() {
     return acc
   }, {})
 
-  const priorityRows = groupByPriority(allOpps)
-  const trendPoints = monthlyTrend(allOpps)
+  const trendPoints = monthlyTrend(allOpps).map(p => ({ label: p.label, value: p.count }))
+  const priorityRows = groupByPriority(allOpps).map(r => ({ label: r.label, value: r.count }))
+
   const showTerritory = user.role === 'ADMIN' || user.role === 'BU_HEAD'
   const showBU = user.role === 'ADMIN' || user.role === 'TERRITORY_MANAGER'
   const territoryRows = showTerritory ? groupByTerritory(allOpps) : []
@@ -95,7 +82,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      {/* KPI Row */}
+      {/* KPI Row — static, server-rendered */}
       <div
         style={{
           display: 'grid',
@@ -128,67 +115,17 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Stage Distribution */}
-      <div style={{ marginBottom: '28px' }}>
-        <SectionLabel>Stage Distribution</SectionLabel>
-        <StageBlocks counts={stageCounts} />
-      </div>
-
-      {/* Charts row */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '16px',
-          marginBottom: '28px',
-        }}
-      >
-        <ChartCard>
-          <SectionLabel>Pipeline Trend (6 mo)</SectionLabel>
-          <TrendChart points={trendPoints.map(p => ({ label: p.label, value: p.count }))} />
-        </ChartCard>
-        <ChartCard>
-          <SectionLabel>By Priority</SectionLabel>
-          <BarList rows={priorityRows.map(r => ({ label: r.label, value: r.count }))} formatValue={v => String(v)} />
-        </ChartCard>
-      </div>
-
-      {/* Territory / BU row */}
-      {(territoryRows.length > 0 || buRows.length > 0) && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              territoryRows.length > 0 && buRows.length > 0 ? 'repeat(2, 1fr)' : '1fr',
-            gap: '16px',
-            marginBottom: '28px',
-          }}
-        >
-          {territoryRows.length > 0 && (
-            <ChartCard>
-              <SectionLabel>By Territory</SectionLabel>
-              <BarList rows={territoryRows} formatValue={formatINRCompact} />
-            </ChartCard>
-          )}
-          {buRows.length > 0 && (
-            <ChartCard>
-              <SectionLabel>By Business Unit</SectionLabel>
-              <BarList rows={buRows} formatValue={formatINRCompact} />
-            </ChartCard>
-          )}
-        </div>
-      )}
-
-      {/* Recent Opportunities */}
-      <div>
-        <SectionLabel>Recent Opportunities</SectionLabel>
-        <div
-          className="card-3d"
-          style={{ overflow: 'hidden', padding: 0 }}
-        >
-          <DashboardTable opportunities={recentOpps} />
-        </div>
-      </div>
+      {/* Interactive section: table → stage cards → charts */}
+      <DashboardClient
+        recentOpps={recentOpps as any}
+        stageCounts={stageCounts}
+        trendPoints={trendPoints}
+        priorityRows={priorityRows}
+        territoryRows={territoryRows}
+        buRows={buRows}
+        showTerritory={showTerritory}
+        showBU={showBU}
+      />
     </div>
   )
 }
