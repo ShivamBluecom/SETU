@@ -321,34 +321,8 @@ export function DashboardClient({
 
   return (
     <>
-      {/* Recent Opportunities */}
-      <div style={{ marginBottom: '28px' }}>
-        <SectionLabel>
-          Recent Opportunities
-          {stageLabel && (
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                padding: '2px 8px',
-                borderRadius: '20px',
-                background: 'var(--color-accent-bg)',
-                color: 'var(--color-accent-text)',
-                letterSpacing: 0,
-                textTransform: 'none',
-              }}
-            >
-              {stageLabel} · {filteredOpps.length} of {recentOpps.length}
-            </span>
-          )}
-        </SectionLabel>
-        <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>
-          <DashboardTable opportunities={filteredOpps} />
-        </div>
-      </div>
-
-      {/* Stage Distribution — click to filter table above */}
-      <div style={{ marginBottom: '28px' }}>
+      {/* Stage Distribution — click to filter table below */}
+      <div style={{ marginBottom: '20px' }}>
         <SectionLabel>
           Stage Distribution
           {selectedStage && (
@@ -373,14 +347,37 @@ export function DashboardClient({
             </button>
           )}
         </SectionLabel>
-        <p style={{ margin: '0 0 10px', fontSize: '12px', color: 'var(--color-text-3)' }}>
-          Click a stage to filter the table above
-        </p>
         <StageBlocks
           counts={stageCounts}
           selectedStage={selectedStage}
           onStageClick={handleStageClick}
         />
+      </div>
+
+      {/* Recent Opportunities */}
+      <div style={{ marginBottom: '28px' }}>
+        <SectionLabel>
+          Recent Opportunities
+          {stageLabel && (
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '20px',
+                background: 'var(--color-accent-bg)',
+                color: 'var(--color-accent-text)',
+                letterSpacing: 0,
+                textTransform: 'none',
+              }}
+            >
+              {stageLabel} · {filteredOpps.length} of {recentOpps.length}
+            </span>
+          )}
+        </SectionLabel>
+        <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>
+          <DashboardTable opportunities={filteredOpps} />
+        </div>
       </div>
 
       {/* Charts row */}
