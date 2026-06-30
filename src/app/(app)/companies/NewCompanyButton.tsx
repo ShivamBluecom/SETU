@@ -22,7 +22,7 @@ const BLANK = {
 export function NewCompanyButton() {
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [nameError, setNameError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [territories, setTerritories] = useState<Territory[]>([])
   const { showToast } = useToast()
   const router = useRouter()
@@ -36,26 +36,25 @@ export function NewCompanyButton() {
   }, [open])
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    if (k === 'name') setNameError('')
+    setErrors(prev => { const n = { ...prev }; delete n[k]; return n })
     setForm(f => ({ ...f, [k]: e.target.value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setNameError('')
+    setErrors({})
     setSaving(true)
     try {
       const body: Record<string, unknown> = {
-        name: form.name,
-        industry: form.industry || undefined,
-        website: form.website || undefined,
-        address: form.address || undefined,
+        name: form.name.trim(),
+        industry: form.industry,
+        territoryId: form.territoryId,
+        address: form.address.trim(),
+        userCount: form.userCount !== '' ? parseInt(form.userCount) : undefined,
+        website: form.website.trim(),
         gstNumber: form.gstNumber || undefined,
-        userCount: form.userCount ? parseInt(form.userCount) : undefined,
         linkedinUrl: form.linkedinUrl || undefined,
-        territoryId: form.territoryId || undefined,
       }
-      Object.keys(body).forEach(k => body[k] === undefined && delete body[k])
 
       const res = await fetch('/api/companies', {
         method: 'POST',
@@ -71,16 +70,24 @@ export function NewCompanyButton() {
       } else if (res.status === 409) {
         const err = await res.json()
         if (err.field === 'name') {
-          setNameError(err.error)
+          setErrors({ name: err.error })
         } else {
           showToast(err.error ?? 'Company already exists', 'error')
         }
-      } else {
+      } else if (res.status === 400) {
         const err = await res.json().catch(() => null)
-        const msg = err?.details?.fieldErrors
-          ? Object.values(err.details.fieldErrors as Record<string, string[]>).flat().join('; ')
-          : err?.error ?? 'Failed to create company'
-        showToast(msg, 'error')
+        const fieldErrors: Record<string, string[]> = err?.details?.fieldErrors ?? {}
+        const mapped: Record<string, string> = {}
+        for (const [field, msgs] of Object.entries(fieldErrors)) {
+          mapped[field] = (msgs as string[])[0] ?? 'Invalid'
+        }
+        if (Object.keys(mapped).length > 0) {
+          setErrors(mapped)
+        } else {
+          showToast(err?.error ?? 'Failed to create company', 'error')
+        }
+      } else {
+        showToast('Failed to create company', 'error')
       }
     } finally {
       setSaving(false)
@@ -92,6 +99,14 @@ export function NewCompanyButton() {
     color: 'var(--color-text-3)', marginBottom: '4px',
   }
 
+  const errMsg = (field: string) =>
+    errors[field] ? (
+      <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--color-danger)' }}>{errors[field]}</p>
+    ) : null
+
+  const borderColor = (field: string) =>
+    errors[field] ? 'var(--color-danger)' : undefined
+
   return (
     <>
       <button
@@ -102,42 +117,47 @@ export function NewCompanyButton() {
         <Plus size={14} /> New Company
       </button>
 
-      <Modal open={open} onOpenChange={setOpen} title="New Company" maxWidth="580px">
+      <Modal open={open} onOpenChange={(v) => { setOpen(v); if (!v) setErrors({}) }} title="New Company" maxWidth="580px">
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '12px' }}>
             <label style={labelStyle}>Company Name *</label>
             <input
               value={form.name}
               onChange={set('name')}
-              required
               placeholder="Acme Corp"
-              style={{ borderColor: nameError ? 'var(--color-danger)' : undefined }}
+              style={{ borderColor: borderColor('name') }}
             />
-            {nameError && (
-              <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--color-danger)' }}>{nameError}</p>
-            )}
+            {errMsg('name')}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
-              <label style={labelStyle}>Industry</label>
-              <select value={form.industry} onChange={set('industry')}>
+              <label style={labelStyle}>Industry *</label>
+              <select value={form.industry} onChange={set('industry')} style={{ borderColor: borderColor('industry') }}>
                 <option value="">Select…</option>
                 {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
               </select>
+              {errMsg('industry')}
             </div>
             <div>
-              <label style={labelStyle}>Territory</label>
-              <select value={form.territoryId} onChange={set('territoryId')}>
+              <label style={labelStyle}>Territory *</label>
+              <select value={form.territoryId} onChange={set('territoryId')} style={{ borderColor: borderColor('territoryId') }}>
                 <option value="">Select…</option>
                 {territories.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
+              {errMsg('territoryId')}
             </div>
           </div>
 
           <div style={{ marginBottom: '12px' }}>
-            <label style={labelStyle}>Address</label>
-            <input value={form.address} onChange={set('address')} placeholder="Full office address" />
+            <label style={labelStyle}>Address *</label>
+            <input
+              value={form.address}
+              onChange={set('address')}
+              placeholder="Full office address"
+              style={{ borderColor: borderColor('address') }}
+            />
+            {errMsg('address')}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
@@ -146,15 +166,29 @@ export function NewCompanyButton() {
               <input value={form.gstNumber} onChange={set('gstNumber')} placeholder="22AAAAA0000A1Z5" />
             </div>
             <div>
-              <label style={labelStyle}>User Count</label>
-              <input type="number" min="0" value={form.userCount} onChange={set('userCount')} placeholder="e.g. 250" />
+              <label style={labelStyle}>User Count *</label>
+              <input
+                type="number"
+                min="0"
+                value={form.userCount}
+                onChange={set('userCount')}
+                placeholder="e.g. 250"
+                style={{ borderColor: borderColor('userCount') }}
+              />
+              {errMsg('userCount')}
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
-              <label style={labelStyle}>Website</label>
-              <input value={form.website} onChange={set('website')} placeholder="https://acme.com" />
+              <label style={labelStyle}>Website *</label>
+              <input
+                value={form.website}
+                onChange={set('website')}
+                placeholder="https://acme.com"
+                style={{ borderColor: borderColor('website') }}
+              />
+              {errMsg('website')}
             </div>
             <div>
               <label style={labelStyle}>LinkedIn URL</label>
@@ -163,7 +197,7 @@ export function NewCompanyButton() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px' }}>
-            <button type="button" className="btn-secondary" onClick={() => { setOpen(false); setNameError('') }}>Cancel</button>
+            <button type="button" className="btn-secondary" onClick={() => { setOpen(false); setErrors({}) }}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Creating…' : 'Create'}</button>
           </div>
         </form>

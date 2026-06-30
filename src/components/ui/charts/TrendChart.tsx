@@ -6,13 +6,15 @@ interface TrendChartPoint {
 interface TrendChartProps {
   points: TrendChartPoint[]
   color?: string
+  height?: number
 }
 
 const WIDTH = 280
-const HEIGHT = 80
+const DEFAULT_HEIGHT = 80
 const PADDING = 6
 
-export function TrendChart({ points, color = 'var(--color-accent)' }: TrendChartProps) {
+export function TrendChart({ points, color = 'var(--color-accent)', height: heightProp }: TrendChartProps) {
+  const HEIGHT = heightProp ?? DEFAULT_HEIGHT
   const max = Math.max(1, ...points.map(p => p.value))
   const stepX = points.length > 1 ? (WIDTH - PADDING * 2) / (points.length - 1) : 0
 
@@ -26,7 +28,7 @@ export function TrendChart({ points, color = 'var(--color-accent)' }: TrendChart
 
   return (
     <div>
-      <svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
+      <svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="xMidYMid meet">
         <path d={areaPath} fill={color} opacity={0.08} />
         <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {coords.map((c, i) => (
