@@ -147,8 +147,19 @@ model Opportunity {
   stage            String    @default("PROSPECTING") @db.NVarChar(50)
   priority         String    @default("MEDIUM") @db.NVarChar(50)
   status           String    @default("DRAFT") @db.NVarChar(50)
-  orderIndex       Int       @default(0)
-  closingComment   String?   @db.NVarChar(Max)
+  orderIndex            Int       @default(0)
+  closingComment        String?   @db.NVarChar(Max)
+  // WON capture fields
+  finalDealValue        Decimal?  @db.Decimal(18, 2)
+  poNumber              String?   @db.NVarChar(200)
+  expectedDeliveryDate  DateTime?
+  keyDecisionMaker      String?   @db.NVarChar(200)
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
+  // LOST capture fields
+  lossReason            String?   @db.NVarChar(100)
+  lostTo                String?   @db.NVarChar(200)
+  couldBeRevived        Boolean?
   companyId        String
   primaryContactId String?
   territoryId      String?

@@ -21,6 +21,7 @@ export default async function OpportunitiesPage() {
             { status: 'DRAFT', createdById: user.id },
           ],
         },
+        { stage: { notIn: ['WON', 'LOST'] } },
       ],
     },
     select: {

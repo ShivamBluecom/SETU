@@ -7,6 +7,7 @@ import { StageBadge } from '@/components/ui/StageBadge'
 import { Avatar } from '@/components/ui/Avatar'
 import { NotesList } from './NotesList'
 import { PocModal } from './PocModal'
+import { WonLostModal } from './WonLostModal'
 import { LineItemForm, type LineItemInitialData } from '@/components/opportunities/creation/LineItemForm'
 import { useToast } from '@/contexts/ToastContext'
 import { formatINR, formatDate } from '@/lib/format'
@@ -64,6 +65,7 @@ export function OpportunityDrawer({
   const [pendingStage, setPendingStage] = useState<OpportunityStage | null>(null)
   const [closingComment, setClosingComment] = useState('')
   const [savingStage, setSavingStage] = useState(false)
+  const [wonLostModalOpen, setWonLostModalOpen] = useState(false)
 
   // Line item edit state
   const [liExpanded, setLiExpanded] = useState<string | null>(null)
@@ -85,6 +87,7 @@ export function OpportunityDrawer({
     setSvcAddOpen(false)
     setPendingStage(null)
     setClosingComment('')
+    setWonLostModalOpen(false)
     fetch(`/api/opportunities/${opportunityId}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => setOpp(d))
@@ -102,18 +105,14 @@ export function OpportunityDrawer({
     if (!opp || !pendingStage) return
     setSavingStage(true)
     try {
-      const body: Record<string, unknown> = { stage: pendingStage }
-      if (pendingStage === 'WON' || pendingStage === 'LOST') {
-        body.closingComment = closingComment.trim()
-      }
       const res = await fetch(`/api/opportunities/${opp.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ stage: pendingStage }),
       })
       if (res.ok) {
         const updated = await res.json()
-        setOpp(prev => prev ? { ...prev, stage: updated.stage, closingComment: updated.closingComment } : prev)
+        setOpp(prev => prev ? { ...prev, stage: updated.stage } : prev)
         setPendingStage(null)
         setClosingComment('')
         showToast('Stage updated', 'success')
@@ -200,6 +199,7 @@ export function OpportunityDrawer({
 
   const currentPocs = opp?.pocs ?? []
   const isOwner = !!currentUserId && !!opp?.createdBy && currentUserId === opp.createdBy.id
+  const isConcluded = opp?.stage === 'WON' || opp?.stage === 'LOST'
   const lineItems = opp?.lineItems ?? []
   const serviceAddons = opp?.serviceAddons ?? []
 
@@ -236,7 +236,7 @@ export function OpportunityDrawer({
                 <StageBadge stage={opp.stage} />
               </div>
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                {isOwner && (
+                {isOwner && !isConcluded && (
                   <button
                     className="btn-secondary"
                     style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}
@@ -273,18 +273,62 @@ export function OpportunityDrawer({
                   <Detail label="Priority">{opp.priority.charAt(0) + opp.priority.slice(1).toLowerCase()}</Detail>
                   {opp.territory && <Detail label="Territory">{opp.territory.name}</Detail>}
                 </div>
-                {(opp.stage === 'WON' || opp.stage === 'LOST') && opp.closingComment && (
+
+                {/* Concluded details panel */}
+                {isConcluded && (
                   <div style={{
-                    marginTop: '12px', padding: '10px 12px', borderRadius: '6px',
+                    marginTop: '12px', padding: '12px', borderRadius: '8px',
                     background: opp.stage === 'WON' ? 'var(--color-accent-bg)' : '#FEF2F2',
                     border: `0.5px solid ${opp.stage === 'WON' ? 'var(--color-accent)' : 'var(--color-danger)'}`,
                   }}>
-                    <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: opp.stage === 'WON' ? 'var(--color-accent-text)' : 'var(--color-danger)' }}>
-                      {opp.stage === 'WON' ? 'Won Reason' : 'Lost Reason'}
+                    <p style={{
+                      margin: '0 0 10px', fontSize: '11px', fontWeight: 600,
+                      textTransform: 'uppercase', letterSpacing: '0.06em',
+                      color: opp.stage === 'WON' ? 'var(--color-accent-text)' : 'var(--color-danger)',
+                    }}>
+                      {opp.stage === 'WON' ? 'Won Details' : 'Lost Details'}
                     </p>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-1)', lineHeight: 1.5 }}>{opp.closingComment}</p>
+                    {opp.stage === 'WON' ? (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {opp.closingComment && (
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <ConcludedField label="Close Remarks" value={opp.closingComment} />
+                          </div>
+                        )}
+                        {opp.finalDealValue != null && (
+                          <ConcludedField label="Final Deal Value" value={formatINR(opp.finalDealValue)} />
+                        )}
+                        {opp.poNumber && <ConcludedField label="PO Number" value={opp.poNumber} />}
+                        {opp.expectedDeliveryDate && (
+                          <ConcludedField label="Expected Delivery" value={formatDate(opp.expectedDeliveryDate)} />
+                        )}
+                        {opp.keyDecisionMaker && (
+                          <ConcludedField label="Key Decision Maker" value={opp.keyDecisionMaker} />
+                        )}
+                        {opp.subscriptionStartDate && (
+                          <ConcludedField label="Subscription Start" value={formatDate(opp.subscriptionStartDate)} />
+                        )}
+                        {opp.subscriptionEndDate && (
+                          <ConcludedField label="Subscription End" value={formatDate(opp.subscriptionEndDate)} />
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {opp.lossReason && <ConcludedField label="Loss Reason" value={opp.lossReason} />}
+                        {opp.lostTo && <ConcludedField label="Lost To" value={opp.lostTo} />}
+                        {opp.couldBeRevived != null && (
+                          <ConcludedField label="Could Be Revived" value={opp.couldBeRevived ? 'Yes' : 'No'} />
+                        )}
+                        {opp.closingComment && (
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <ConcludedField label="Loss Remarks" value={opp.closingComment} />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
+
                 {opp.description && (
                   <p style={{ marginTop: '12px', fontSize: '13px', color: 'var(--color-text-2)', lineHeight: 1.6 }}>{opp.description}</p>
                 )}
@@ -330,7 +374,7 @@ export function OpportunityDrawer({
               <section style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <p style={SEC}>Line Items</p>
-                  {isOwner && !liAddOpen && (
+                  {isOwner && !isConcluded && !liAddOpen && (
                     <button
                       className="btn-secondary"
                       style={{ fontSize: '11px', padding: '3px 8px' }}
@@ -364,7 +408,7 @@ export function OpportunityDrawer({
                             border: '0.5px solid var(--color-border)',
                             borderBottom: isExpanded ? 'none' : '0.5px solid var(--color-border)',
                           }}>
-                            {isOwner && (
+                            {isOwner && !isConcluded && (
                               <button
                                 onClick={() => setLiExpanded(prev => prev === li.id ? null : li.id)}
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0 }}
@@ -391,7 +435,7 @@ export function OpportunityDrawer({
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 500, color: 'var(--color-text-1)', flexShrink: 0 }}>
                               {formatINR(li.totalValue)}
                             </span>
-                            {isOwner && (
+                            {isOwner && !isConcluded && (
                               <button
                                 onClick={() => handleDeleteLineItem(li.id)}
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '4px', display: 'flex', flexShrink: 0 }}
@@ -404,7 +448,7 @@ export function OpportunityDrawer({
                             )}
                           </div>
 
-                          {isOwner && isExpanded && (
+                          {isOwner && !isConcluded && isExpanded && (
                             <div style={{
                               border: '0.5px solid var(--color-border)', borderTop: 'none',
                               borderRadius: '0 0 6px 6px', padding: '12px',
@@ -431,7 +475,7 @@ export function OpportunityDrawer({
                   </p>
                 )}
 
-                {isOwner && liAddOpen && (
+                {isOwner && !isConcluded && liAddOpen && (
                   <LineItemForm
                     opportunityId={opp.id}
                     onSaved={() => { setLiAddOpen(false); reloadOpp() }}
@@ -459,7 +503,7 @@ export function OpportunityDrawer({
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 500, flexShrink: 0 }}>
                           {formatINR(s.value)}
                         </span>
-                        {isOwner && (
+                        {isOwner && !isConcluded && (
                           <button
                             onClick={() => handleDeleteService(s.id)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '4px', display: 'flex', flexShrink: 0 }}
@@ -474,7 +518,7 @@ export function OpportunityDrawer({
                   </div>
                 )}
 
-                {isOwner && !svcAddOpen && (
+                {isOwner && !isConcluded && !svcAddOpen && (
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {!serviceAddons.some(s => s.type === 'MANAGED') && (
                       <button
@@ -497,7 +541,7 @@ export function OpportunityDrawer({
                   </div>
                 )}
 
-                {isOwner && svcAddOpen && (
+                {isOwner && !isConcluded && svcAddOpen && (
                   <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '6px', padding: '12px', background: 'var(--color-surface)' }}>
                     <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: 600, color: 'var(--color-text-1)' }}>
                       {svcType === 'MANAGED' ? 'Managed Services (ARR)' : 'Implementation'}
@@ -529,54 +573,44 @@ export function OpportunityDrawer({
                 </div>
               </section>
 
-              {/* Stage update — owner only */}
-              {isOwner && (
+              {/* Stage update — owner only, not for concluded opportunities */}
+              {isOwner && !isConcluded && (
                 <section style={{ marginBottom: '24px' }}>
                   <p style={{ ...SEC, marginBottom: '8px' }}>Update Stage</p>
                   <select
                     value={pendingStage ?? opp.stage}
                     onChange={e => {
                       const s = e.target.value as OpportunityStage
-                      if (s === opp.stage) { setPendingStage(null); setClosingComment('') }
-                      else setPendingStage(s)
+                      if (s === opp.stage) {
+                        setPendingStage(null)
+                        setClosingComment('')
+                      } else if (s === 'WON' || s === 'LOST') {
+                        setPendingStage(s)
+                        setWonLostModalOpen(true)
+                      } else {
+                        setPendingStage(s)
+                      }
                     }}
                     style={{ maxWidth: '200px' }}
                   >
                     {STAGES.map(s => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
                   </select>
-                  {pendingStage && pendingStage !== opp.stage && (
-                    <>
-                      {(pendingStage === 'WON' || pendingStage === 'LOST') && (
-                        <div style={{ marginTop: '10px' }}>
-                          <label style={LBL}>Reason / Comment *</label>
-                          <textarea
-                            value={closingComment}
-                            onChange={e => setClosingComment(e.target.value)}
-                            rows={3}
-                            placeholder="Provide context for this outcome…"
-                            style={{ resize: 'vertical' }}
-                          />
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                        <button
-                          className="btn-secondary"
-                          onClick={() => { setPendingStage(null); setClosingComment('') }}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          className="btn-primary"
-                          onClick={confirmStageChange}
-                          disabled={
-                            savingStage ||
-                            ((pendingStage === 'WON' || pendingStage === 'LOST') && !closingComment.trim())
-                          }
-                        >
-                          {savingStage ? 'Saving…' : 'Save'}
-                        </button>
-                      </div>
-                    </>
+                  {pendingStage && pendingStage !== opp.stage && pendingStage !== 'WON' && pendingStage !== 'LOST' && (
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => { setPendingStage(null); setClosingComment('') }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn-primary"
+                        onClick={confirmStageChange}
+                        disabled={savingStage}
+                      >
+                        {savingStage ? 'Saving…' : 'Save'}
+                      </button>
+                    </div>
                   )}
                 </section>
               )}
@@ -585,25 +619,27 @@ export function OpportunityDrawer({
               <section>
                 <p style={{ ...SEC, marginBottom: '12px' }}>Notes</p>
                 <NotesList notes={opp.notes ?? []} />
-                <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                  <textarea
-                    value={noteText}
-                    onChange={e => setNoteText(e.target.value)}
-                    rows={3}
-                    placeholder="Add a note…"
-                    style={{ flex: 1, resize: 'vertical' }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                    <button
-                      className="btn-primary"
-                      onClick={handleAddNote}
-                      disabled={savingNote || !noteText.trim()}
-                      style={{ padding: '8px 12px' }}
-                    >
-                      Add
-                    </button>
+                {!isConcluded && (
+                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                    <textarea
+                      value={noteText}
+                      onChange={e => setNoteText(e.target.value)}
+                      rows={3}
+                      placeholder="Add a note…"
+                      style={{ flex: 1, resize: 'vertical' }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                      <button
+                        className="btn-primary"
+                        onClick={handleAddNote}
+                        disabled={savingNote || !noteText.trim()}
+                        style={{ padding: '8px 12px' }}
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </section>
             </div>
           </>
@@ -624,6 +660,23 @@ export function OpportunityDrawer({
           }}
         />
       )}
+
+      {opp && pendingStage && (pendingStage === 'WON' || pendingStage === 'LOST') && (
+        <WonLostModal
+          open={wonLostModalOpen}
+          stage={pendingStage}
+          opportunityId={opp.id}
+          onSuccess={() => {
+            setWonLostModalOpen(false)
+            setPendingStage(null)
+            reloadOpp()
+          }}
+          onCancel={() => {
+            setWonLostModalOpen(false)
+            setPendingStage(null)
+          }}
+        />
+      )}
     </>
   )
 }
@@ -635,6 +688,19 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
         {label}
       </p>
       <div style={{ fontSize: '14px', color: 'var(--color-text-1)' }}>{children}</div>
+    </div>
+  )
+}
+
+function ConcludedField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ margin: '0 0 2px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-3)' }}>
+        {label}
+      </p>
+      <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-1)', lineHeight: 1.4 }}>
+        {value}
+      </p>
     </div>
   )
 }

@@ -12,6 +12,7 @@ import {
   Bell,
   Shield,
   Zap,
+  Archive,
 } from 'lucide-react'
 import type { UserRole } from '@/types/enums'
 
@@ -23,6 +24,7 @@ const NAV = [
   { href: '/dashboard',      icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/opportunities',  icon: List,            label: 'Opportunities' },
   { href: '/pipeline',       icon: Columns,         label: 'Pipeline' },
+  { href: '/concluded',      icon: Archive,         label: 'Concluded' },
   { href: '/companies',      icon: Building2,       label: 'Companies' },
   { href: '/contacts',       icon: Users,           label: 'Contacts' },
   { href: '/notifications',  icon: Bell,            label: 'Notifications' },
