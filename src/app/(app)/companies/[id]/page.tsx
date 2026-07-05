@@ -19,6 +19,7 @@ export default async function CompanyDetailPage({ params }: Props) {
     where: { id: params.id },
     include: {
       territory: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, name: true } },
       contacts: {
         include: { company: { select: { id: true, name: true } } },
         orderBy: { name: 'asc' },
