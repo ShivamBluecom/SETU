@@ -16,6 +16,11 @@ function createPrismaClient(): PrismaClient {
     .replace(/;loginTimeout=\d+/gi, '')
     .replace(/;+$/, '')
 
+  // During `next build`, DATABASE_URL is absent. The mssql adapter validates the URL
+  // immediately at construction time (unlike Prisma 5 which connected lazily), so we
+  // must return a stub here. API routes are never invoked during static build.
+  if (!url || !url.startsWith('sqlserver://')) return {} as PrismaClient
+
   console.log('[prisma] connecting to', url.replace(/password=[^;]*/i, 'password=***'))
 
   const { PrismaMssql } = require('@prisma/adapter-mssql') as typeof import('@prisma/adapter-mssql')
