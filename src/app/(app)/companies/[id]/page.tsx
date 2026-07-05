@@ -38,10 +38,12 @@ export default async function CompanyDetailPage({ params }: Props) {
 
   if (!company) notFound()
 
+  const canEdit = user.role === 'ADMIN' || company.createdById === user.id
+
   return (
     <div>
-      <CompanyHeader company={company} />
-      <CompanyTabs contacts={company.contacts} opportunities={company.opportunities} companyId={company.id} />
+      <CompanyHeader company={company} canEdit={canEdit} />
+      <CompanyTabs contacts={company.contacts} opportunities={company.opportunities} companyId={company.id} canEdit={canEdit} />
     </div>
   )
 }

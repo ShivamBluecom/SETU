@@ -9,6 +9,7 @@ interface NewContactModalProps {
   onOpenChange: (open: boolean) => void
   defaultCompanyId?: string
   onCreated: () => void
+  companies?: { id: string; name: string }[]
 }
 
 interface Company { id: string; name: string }
@@ -25,15 +26,17 @@ const BLANK = (defaultCompanyId?: string) => ({
   linkedinUrl: '',
 })
 
-export function NewContactModal({ open, onOpenChange, defaultCompanyId, onCreated }: NewContactModalProps) {
+export function NewContactModal({ open, onOpenChange, defaultCompanyId, onCreated, companies: propCompanies }: NewContactModalProps) {
   const { showToast } = useToast()
   const [saving, setSaving] = useState(false)
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [companies, setCompanies] = useState<Company[]>(propCompanies ?? [])
   const [form, setForm] = useState(BLANK(defaultCompanyId))
 
   useEffect(() => {
     if (!open) return
+    if (propCompanies) { setCompanies(propCompanies); return }
     fetch('/api/companies').then(r => r.json()).then(d => setCompanies(d))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   useEffect(() => {
