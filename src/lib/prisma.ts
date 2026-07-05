@@ -18,7 +18,6 @@ function createPrismaClient(): PrismaClient {
 
   console.log('[prisma] connecting to', url.replace(/password=[^;]*/i, 'password=***'))
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaMssql } = require('@prisma/adapter-mssql') as typeof import('@prisma/adapter-mssql')
   const adapter = new PrismaMssql(url)
 
