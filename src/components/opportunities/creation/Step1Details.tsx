@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useToast } from '@/contexts/ToastContext'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
+import { InlineCompanyForm } from '@/components/opportunities/InlineCompanyForm'
+import { InlineContactForm } from '@/components/opportunities/InlineContactForm'
 import type { SessionUser } from '@/types/api'
 
 interface Step1DetailsProps {
@@ -50,6 +52,8 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
 
   const [additionalContactIds, setAdditionalContactIds] = useState<string[]>([])
   const [originalAdditionalContactIds, setOriginalAdditionalContactIds] = useState<string[]>([])
+  const [showCompanyForm, setShowCompanyForm] = useState(false)
+  const [showContactForm, setShowContactForm] = useState(false)
 
   const [form, setForm] = useState({
     title: '',
@@ -211,7 +215,18 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         <div>
-          <label style={labelStyle}>Company *</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>Company *</label>
+            {!showCompanyForm && (
+              <button
+                type="button"
+                onClick={() => setShowCompanyForm(true)}
+                style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                + Create new
+              </button>
+            )}
+          </div>
           <SearchableSelect
             value={form.companyId}
             onChange={v => {
@@ -225,7 +240,18 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
           {errors.companyId && <p style={errStyle}>{errors.companyId}</p>}
         </div>
         <div>
-          <label style={labelStyle}>Primary Contact *</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>Primary Contact *</label>
+            {!showContactForm && form.companyId && (
+              <button
+                type="button"
+                onClick={() => setShowContactForm(true)}
+                style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                + Create new
+              </button>
+            )}
+          </div>
           <select
             value={form.primaryContactId}
             onChange={set('primaryContactId')}
@@ -238,6 +264,31 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
           {errors.primaryContactId && <p style={errStyle}>{errors.primaryContactId}</p>}
         </div>
       </div>
+
+      {showCompanyForm && (
+        <InlineCompanyForm
+          territories={territories}
+          onCreated={company => {
+            setCompanies(prev => [...prev, company])
+            setForm(f => ({ ...f, companyId: company.id }))
+            setShowCompanyForm(false)
+            if (errors.companyId) setErrors(prev => { const next = { ...prev }; delete next.companyId; return next })
+          }}
+          onCancel={() => setShowCompanyForm(false)}
+        />
+      )}
+      {showContactForm && form.companyId && (
+        <InlineContactForm
+          companyId={form.companyId}
+          onCreated={contact => {
+            setContacts(prev => [...prev, contact])
+            setForm(f => ({ ...f, primaryContactId: contact.id }))
+            setShowContactForm(false)
+            if (errors.primaryContactId) setErrors(prev => { const next = { ...prev }; delete next.primaryContactId; return next })
+          }}
+          onCancel={() => setShowContactForm(false)}
+        />
+      )}
 
       {/* Additional Contacts */}
       {form.companyId && (

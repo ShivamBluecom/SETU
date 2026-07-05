@@ -30,6 +30,7 @@ export type OpportunityWithRelations = Omit<Opportunity, 'stage' | 'priority'> &
   stage: string
   priority: string
   status: string
+  closingComment?: string | null
   company: Pick<Company, 'id' | 'name' | 'industry'>
   primaryContact: Pick<Contact, 'id' | 'name' | 'designation' | 'email' | 'phone'> | null
   createdBy: Pick<User, 'id' | 'name' | 'email'>

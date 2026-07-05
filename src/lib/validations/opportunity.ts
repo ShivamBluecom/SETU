@@ -23,6 +23,7 @@ export const UpdateOpportunitySchema = z.object({
   primaryContactId: z.string().nullable().optional(),
   territoryId: z.string().nullable().optional(),
   orderIndex: z.number().int().optional(),
+  closingComment: z.string().optional(),
 })
 
 export const CreateLineItemSchema = z.object({

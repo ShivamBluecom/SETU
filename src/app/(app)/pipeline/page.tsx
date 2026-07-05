@@ -22,14 +22,7 @@ const STAGES: { stage: OpportunityStage; label: string }[] = [
   { stage: 'QUALIFIED', label: 'Qualified' },
   { stage: 'PROPOSAL', label: 'Proposal' },
   { stage: 'NEGOTIATION', label: 'Negotiation' },
-  { stage: 'WON', label: 'Won' },
-  { stage: 'LOST', label: 'Lost' },
 ]
-
-const COLUMN_HEADER_STYLES: Partial<Record<OpportunityStage, React.CSSProperties>> = {
-  WON: { background: 'var(--color-accent-bg)', color: 'var(--color-accent-text)' },
-  LOST: { background: '#FEF2F2', color: 'var(--color-danger)' },
-}
 
 export default function PipelinePage() {
   const { showToast } = useToast()
@@ -129,7 +122,7 @@ export default function PipelinePage() {
           >
             {STAGES.map(({ stage, label }) => {
               const cards = byStage(stage)
-              const headerStyle = COLUMN_HEADER_STYLES[stage] ?? {
+              const headerStyle = {
                 background: 'var(--color-surface-2)',
                 color: 'var(--color-text-2)',
               }

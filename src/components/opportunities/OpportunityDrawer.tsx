@@ -60,6 +60,11 @@ export function OpportunityDrawer({
   const [savingNote, setSavingNote] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
 
+  // Stage change state
+  const [pendingStage, setPendingStage] = useState<OpportunityStage | null>(null)
+  const [closingComment, setClosingComment] = useState('')
+  const [savingStage, setSavingStage] = useState(false)
+
   // Line item edit state
   const [liExpanded, setLiExpanded] = useState<string | null>(null)
   const [liAddOpen, setLiAddOpen] = useState(false)
@@ -78,6 +83,8 @@ export function OpportunityDrawer({
     setLiExpanded(null)
     setLiAddOpen(false)
     setSvcAddOpen(false)
+    setPendingStage(null)
+    setClosingComment('')
     fetch(`/api/opportunities/${opportunityId}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => setOpp(d))
@@ -91,20 +98,31 @@ export function OpportunityDrawer({
     onUpdated?.()
   }
 
-  const handleStageChange = async (stage: OpportunityStage) => {
-    if (!opp) return
-    const res = await fetch(`/api/opportunities/${opp.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stage }),
-    })
-    if (res.ok) {
-      const updated = await res.json()
-      setOpp(prev => prev ? { ...prev, stage: updated.stage } : prev)
-      showToast('Stage updated', 'success')
-      onUpdated?.()
-    } else {
-      showToast('Failed to update stage', 'error')
+  const confirmStageChange = async () => {
+    if (!opp || !pendingStage) return
+    setSavingStage(true)
+    try {
+      const body: Record<string, unknown> = { stage: pendingStage }
+      if (pendingStage === 'WON' || pendingStage === 'LOST') {
+        body.closingComment = closingComment.trim()
+      }
+      const res = await fetch(`/api/opportunities/${opp.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setOpp(prev => prev ? { ...prev, stage: updated.stage, closingComment: updated.closingComment } : prev)
+        setPendingStage(null)
+        setClosingComment('')
+        showToast('Stage updated', 'success')
+        onUpdated?.()
+      } else {
+        showToast('Failed to update stage', 'error')
+      }
+    } finally {
+      setSavingStage(false)
     }
   }
 
@@ -255,6 +273,18 @@ export function OpportunityDrawer({
                   <Detail label="Priority">{opp.priority.charAt(0) + opp.priority.slice(1).toLowerCase()}</Detail>
                   {opp.territory && <Detail label="Territory">{opp.territory.name}</Detail>}
                 </div>
+                {(opp.stage === 'WON' || opp.stage === 'LOST') && opp.closingComment && (
+                  <div style={{
+                    marginTop: '12px', padding: '10px 12px', borderRadius: '6px',
+                    background: opp.stage === 'WON' ? 'var(--color-accent-bg)' : '#FEF2F2',
+                    border: `0.5px solid ${opp.stage === 'WON' ? 'var(--color-accent)' : 'var(--color-danger)'}`,
+                  }}>
+                    <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: opp.stage === 'WON' ? 'var(--color-accent-text)' : 'var(--color-danger)' }}>
+                      {opp.stage === 'WON' ? 'Won Reason' : 'Lost Reason'}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-1)', lineHeight: 1.5 }}>{opp.closingComment}</p>
+                  </div>
+                )}
                 {opp.description && (
                   <p style={{ marginTop: '12px', fontSize: '13px', color: 'var(--color-text-2)', lineHeight: 1.6 }}>{opp.description}</p>
                 )}
@@ -504,12 +534,50 @@ export function OpportunityDrawer({
                 <section style={{ marginBottom: '24px' }}>
                   <p style={{ ...SEC, marginBottom: '8px' }}>Update Stage</p>
                   <select
-                    value={opp.stage}
-                    onChange={e => handleStageChange(e.target.value as OpportunityStage)}
+                    value={pendingStage ?? opp.stage}
+                    onChange={e => {
+                      const s = e.target.value as OpportunityStage
+                      if (s === opp.stage) { setPendingStage(null); setClosingComment('') }
+                      else setPendingStage(s)
+                    }}
                     style={{ maxWidth: '200px' }}
                   >
                     {STAGES.map(s => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
                   </select>
+                  {pendingStage && pendingStage !== opp.stage && (
+                    <>
+                      {(pendingStage === 'WON' || pendingStage === 'LOST') && (
+                        <div style={{ marginTop: '10px' }}>
+                          <label style={LBL}>Reason / Comment *</label>
+                          <textarea
+                            value={closingComment}
+                            onChange={e => setClosingComment(e.target.value)}
+                            rows={3}
+                            placeholder="Provide context for this outcome…"
+                            style={{ resize: 'vertical' }}
+                          />
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => { setPendingStage(null); setClosingComment('') }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="btn-primary"
+                          onClick={confirmStageChange}
+                          disabled={
+                            savingStage ||
+                            ((pendingStage === 'WON' || pendingStage === 'LOST') && !closingComment.trim())
+                          }
+                        >
+                          {savingStage ? 'Saving…' : 'Save'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </section>
               )}
 

@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { InlineCompanyForm } from '@/components/opportunities/InlineCompanyForm'
+import { InlineContactForm } from '@/components/opportunities/InlineContactForm'
 import type { OpportunityStage, OpportunityPriority } from '@/types/enums'
 import type { SessionUser } from '@/types/api'
 
@@ -58,6 +60,8 @@ export function NewOpportunityModal({
   const [allBUs, setAllBUs] = useState<SelectOption[]>([])
   const [allTerritories, setAllTerritories] = useState<SelectOption[]>([])
   const [buOwners, setBUOwners] = useState<SelectOption[]>([])
+  const [showCompanyForm, setShowCompanyForm] = useState(false)
+  const [showContactForm, setShowContactForm] = useState(false)
 
   const [form, setForm] = useState(BLANK_FORM(defaultStage))
 
@@ -75,6 +79,8 @@ export function NewOpportunityModal({
   // Fetch reference data when modal opens
   useEffect(() => {
     if (!open) return
+    setShowCompanyForm(false)
+    setShowContactForm(false)
     fetch('/api/companies').then(r => r.json()).then(d => setCompanies(d.map((c: SelectOption) => ({ id: c.id, name: c.name }))))
     fetch('/api/business-units').then(r => r.json()).then(d => setAllBUs(d.map((b: SelectOption) => ({ id: b.id, name: b.name }))))
     fetch('/api/territories').then(r => r.json()).then(d => setAllTerritories(d.map((t: SelectOption) => ({ id: t.id, name: t.name }))))
@@ -148,22 +154,71 @@ export function NewOpportunityModal({
           <input value={form.title} onChange={set('title')} required placeholder="Opportunity title" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '8px' }}>
           <div>
-            <label style={labelStyle}>Company *</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label style={{ ...labelStyle, marginBottom: 0 }}>Company *</label>
+              {!showCompanyForm && (
+                <button
+                  type="button"
+                  onClick={() => setShowCompanyForm(true)}
+                  style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  + Create new
+                </button>
+              )}
+            </div>
             <select value={form.companyId} onChange={set('companyId')} required>
               <option value="">Select company</option>
               {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div>
-            <label style={labelStyle}>Primary Contact</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label style={{ ...labelStyle, marginBottom: 0 }}>Primary Contact</label>
+              {!showContactForm && form.companyId && (
+                <button
+                  type="button"
+                  onClick={() => setShowContactForm(true)}
+                  style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  + Create new
+                </button>
+              )}
+            </div>
             <select value={form.primaryContactId} onChange={set('primaryContactId')} disabled={!form.companyId}>
               <option value="">None</option>
               {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
         </div>
+
+        {showCompanyForm && (
+          <div style={{ marginBottom: '12px' }}>
+            <InlineCompanyForm
+              territories={allTerritories}
+              onCreated={company => {
+                setCompanies(prev => [...prev, company])
+                setForm(f => ({ ...f, companyId: company.id }))
+                setShowCompanyForm(false)
+              }}
+              onCancel={() => setShowCompanyForm(false)}
+            />
+          </div>
+        )}
+        {showContactForm && form.companyId && (
+          <div style={{ marginBottom: '12px' }}>
+            <InlineContactForm
+              companyId={form.companyId}
+              onCreated={contact => {
+                setContacts(prev => [...prev, { id: contact.id, name: contact.name }])
+                setForm(f => ({ ...f, primaryContactId: contact.id }))
+                setShowContactForm(false)
+              }}
+              onCancel={() => setShowContactForm(false)}
+            />
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>

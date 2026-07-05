@@ -1,6 +1,5 @@
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -149,6 +148,7 @@ model Opportunity {
   priority         String    @default("MEDIUM") @db.NVarChar(50)
   status           String    @default("DRAFT") @db.NVarChar(50)
   orderIndex       Int       @default(0)
+  closingComment   String?   @db.NVarChar(Max)
   companyId        String
   primaryContactId String?
   territoryId      String?
