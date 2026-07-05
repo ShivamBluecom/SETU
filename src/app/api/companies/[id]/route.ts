@@ -10,11 +10,32 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const user = session.user as SessionUser
-  if (user.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
   const parsed = UpdateCompanySchema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+  if (!parsed.success) return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 })
+
+  const existing = await prisma.company.findUnique({
+    where: { id: params.id },
+    select: { createdById: true },
+  })
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.createdById !== user.id && user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (parsed.data.name) {
+    const duplicate = await prisma.company.findFirst({
+      where: { name: { equals: parsed.data.name.trim() }, id: { not: params.id } },
+      select: { name: true },
+    })
+    if (duplicate) {
+      return NextResponse.json(
+        { error: `A company named '${duplicate.name}' already exists`, field: 'name' },
+        { status: 409 }
+      )
+    }
+  }
 
   const company = await prisma.company.update({
     where: { id: params.id },

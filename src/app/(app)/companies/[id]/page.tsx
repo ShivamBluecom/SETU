@@ -19,6 +19,7 @@ export default async function CompanyDetailPage({ params }: Props) {
     where: { id: params.id },
     include: {
       territory: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, name: true } },
       contacts: {
         include: { company: { select: { id: true, name: true } } },
         orderBy: { name: 'asc' },
@@ -38,10 +39,12 @@ export default async function CompanyDetailPage({ params }: Props) {
 
   if (!company) notFound()
 
+  const canEdit = user.role === 'ADMIN' || company.createdById === user.id
+
   return (
     <div>
-      <CompanyHeader company={company} />
-      <CompanyTabs contacts={company.contacts} opportunities={company.opportunities} companyId={company.id} />
+      <CompanyHeader company={company} canEdit={canEdit} />
+      <CompanyTabs contacts={company.contacts} opportunities={company.opportunities} companyId={company.id} canEdit={canEdit} />
     </div>
   )
 }

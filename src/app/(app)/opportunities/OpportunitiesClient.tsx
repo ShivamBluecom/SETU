@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Search, X } from 'lucide-react'
 import { StageBadge } from '@/components/ui/StageBadge'
@@ -53,6 +53,9 @@ const filterInputStyle: React.CSSProperties = {
 export function OpportunitiesClient({ opportunities: initial, currentUserId }: OpportunitiesClientProps) {
   const router = useRouter()
   const [opps, setOpps] = useState<Opp[]>(initial)
+  // Sync when router.refresh() delivers updated server data
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setOpps(initial) }, [initial])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 

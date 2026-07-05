@@ -16,6 +16,7 @@ interface Props {
   contacts: Array<Contact & { company: Pick<Company, 'id' | 'name'> }>
   opportunities: OpportunityWithRelations[]
   companyId: string
+  canEdit: boolean
 }
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -33,7 +34,7 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
   outline: 'none',
 })
 
-export function CompanyTabs({ contacts, opportunities, companyId }: Props) {
+export function CompanyTabs({ contacts, opportunities, companyId, canEdit }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState('contacts')
   const [contactModalOpen, setContactModalOpen] = useState(false)
@@ -56,7 +57,7 @@ export function CompanyTabs({ contacts, opportunities, companyId }: Props) {
             </Tabs.Trigger>
           </Tabs.List>
 
-          {tab === 'contacts' && (
+          {tab === 'contacts' && canEdit && (
             <button
               className="btn-primary"
               style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '6px 12px' }}

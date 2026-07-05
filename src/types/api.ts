@@ -11,6 +11,7 @@ import type {
   ServiceAddon,
   OpportunityPoc,
 } from '@prisma/client'
+import type { Decimal } from '@prisma/client/runtime/client'
 import type { UserRole, OpportunityStage } from '@/types/enums'
 
 export type { UserRole, OpportunityStage }
@@ -31,6 +32,17 @@ export type OpportunityWithRelations = Omit<Opportunity, 'stage' | 'priority'> &
   priority: string
   status: string
   closingComment?: string | null
+  // WON capture fields
+  finalDealValue?: Decimal | number | null
+  poNumber?: string | null
+  expectedDeliveryDate?: Date | string | null
+  keyDecisionMaker?: string | null
+  subscriptionStartDate?: Date | string | null
+  subscriptionEndDate?: Date | string | null
+  // LOST capture fields
+  lossReason?: string | null
+  lostTo?: string | null
+  couldBeRevived?: boolean | null
   company: Pick<Company, 'id' | 'name' | 'industry'>
   primaryContact: Pick<Contact, 'id' | 'name' | 'designation' | 'email' | 'phone'> | null
   createdBy: Pick<User, 'id' | 'name' | 'email'>

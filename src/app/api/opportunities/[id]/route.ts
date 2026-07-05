@@ -96,6 +96,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (opp.createdById !== user.id && user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
+  if (WON_LOST.includes(opp.stage as OpportunityStage)) {
+    return NextResponse.json({ error: 'Concluded opportunities cannot be modified' }, { status: 403 })
+  }
 
   const body = await req.json()
   const parsed = UpdateOpportunitySchema.safeParse(body)
@@ -106,6 +109,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const data = parsed.data
   const updateData: Record<string, unknown> = { ...data }
   if (data.closeDate) updateData.closeDate = new Date(data.closeDate)
+  if (data.expectedDeliveryDate) updateData.expectedDeliveryDate = new Date(data.expectedDeliveryDate)
+  if (data.subscriptionStartDate) updateData.subscriptionStartDate = new Date(data.subscriptionStartDate)
+  if (data.subscriptionEndDate) updateData.subscriptionEndDate = new Date(data.subscriptionEndDate)
 
   const updated = await prisma.opportunity.update({
     where: { id: params.id },

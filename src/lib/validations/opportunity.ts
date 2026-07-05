@@ -24,6 +24,17 @@ export const UpdateOpportunitySchema = z.object({
   territoryId: z.string().nullable().optional(),
   orderIndex: z.number().int().optional(),
   closingComment: z.string().optional(),
+  // WON fields
+  finalDealValue: z.number().nonnegative().optional(),
+  poNumber: z.string().optional(),
+  expectedDeliveryDate: z.string().optional(),
+  keyDecisionMaker: z.string().optional(),
+  subscriptionStartDate: z.string().optional(),
+  subscriptionEndDate: z.string().optional(),
+  // LOST fields
+  lossReason: z.string().optional(),
+  lostTo: z.string().optional(),
+  couldBeRevived: z.boolean().optional(),
 })
 
 export const CreateLineItemSchema = z.object({

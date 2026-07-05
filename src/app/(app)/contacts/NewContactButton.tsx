@@ -5,7 +5,11 @@ import { Plus } from 'lucide-react'
 import { NewContactModal } from '@/components/contacts/NewContactModal'
 import { useRouter } from 'next/navigation'
 
-export function NewContactButton() {
+interface Props {
+  companies: { id: string; name: string }[]
+}
+
+export function NewContactButton({ companies }: Props) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
@@ -21,6 +25,7 @@ export function NewContactButton() {
       <NewContactModal
         open={open}
         onOpenChange={setOpen}
+        companies={companies}
         onCreated={() => { setOpen(false); router.refresh() }}
       />
     </>
