@@ -8,11 +8,41 @@ export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const user = session.user as SessionUser
   const { searchParams } = req.nextUrl
   const companyId = searchParams.get('companyId')
 
+  if (companyId) {
+    // Opportunity creation: contacts for a specific company.
+    // Owners/admins get full details; everyone else gets only id+name+designation
+    // so they can populate the dropdown without exposing PII.
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { createdById: true },
+    })
+    const isOwner = user.role === 'ADMIN' || company?.createdById === user.id
+
+    if (isOwner) {
+      const contacts = await prisma.contact.findMany({
+        where: { companyId },
+        include: { company: { select: { id: true, name: true } } },
+        orderBy: { name: 'asc' },
+      })
+      return NextResponse.json(contacts)
+    }
+
+    // Non-owner: strip all PII
+    const contacts = await prisma.contact.findMany({
+      where: { companyId },
+      select: { id: true, name: true, designation: true },
+      orderBy: { name: 'asc' },
+    })
+    return NextResponse.json(contacts)
+  }
+
+  // No companyId (contacts page): only return contacts from companies the user created
   const contacts = await prisma.contact.findMany({
-    where: companyId ? { companyId } : undefined,
+    where: user.role === 'ADMIN' ? undefined : { company: { createdById: user.id } },
     include: { company: { select: { id: true, name: true } } },
     orderBy: { name: 'asc' },
   })

@@ -12,6 +12,7 @@ export default async function ContactsPage() {
 
   const [contacts, manageableCompanies] = await Promise.all([
     prisma.contact.findMany({
+      where: user.role === 'ADMIN' ? undefined : { company: { createdById: user.id } },
       include: { company: { select: { id: true, name: true } } },
       orderBy: { name: 'asc' },
     }),
