@@ -9,6 +9,7 @@ import { NotesList } from './NotesList'
 import { PocModal } from './PocModal'
 import { WonLostModal } from './WonLostModal'
 import { LineItemForm, type LineItemInitialData } from '@/components/opportunities/creation/LineItemForm'
+import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
 import { formatINR, formatDate } from '@/lib/format'
 import type { OpportunityWithRelations } from '@/types/api'
@@ -78,6 +79,10 @@ export function OpportunityDrawer({
   const [svcDescription, setSvcDescription] = useState('')
   const [svcValue, setSvcValue] = useState('')
   const [svcSaving, setSvcSaving] = useState(false)
+
+  // Admin delete confirm state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!open || !opportunityId) return
@@ -158,17 +163,22 @@ export function OpportunityDrawer({
     }
   }
 
-  const handleAdminDelete = async () => {
+  const confirmAdminDelete = async () => {
     if (!opp) return
-    if (!window.confirm(`Delete "${opp.title}"? This cannot be undone.`)) return
-    const res = await fetch(`/api/opportunities/${opp.id}`, { method: 'DELETE' })
-    if (res.ok) {
-      showToast('Opportunity deleted', 'success')
-      onClose()
-      onUpdated?.()
-    } else {
-      const err = await res.json().catch(() => null)
-      showToast(err?.error ?? 'Failed to delete', 'error')
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/opportunities/${opp.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setDeleteConfirmOpen(false)
+        showToast('Opportunity deleted', 'success')
+        onClose()
+        onUpdated?.()
+      } else {
+        const err = await res.json().catch(() => null)
+        showToast(err?.error ?? 'Failed to delete', 'error')
+      }
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -262,7 +272,7 @@ export function OpportunityDrawer({
                 )}
                 {currentUserRole === 'ADMIN' && (
                   <button
-                    onClick={handleAdminDelete}
+                    onClick={() => setDeleteConfirmOpen(true)}
                     title="Delete opportunity"
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -706,6 +716,35 @@ export function OpportunityDrawer({
           }}
         />
       )}
+
+      <Modal open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen} title="Delete Opportunity" maxWidth="400px">
+        <p style={{ margin: '0 0 8px', fontSize: '14px', color: 'var(--color-text-1)' }}>
+          Are you sure you want to delete <strong>{opp?.title}</strong>?
+        </p>
+        <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--color-text-3)' }}>
+          This will permanently remove the opportunity and all associated notes, line items, and history. This action cannot be undone.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <button
+            className="btn-secondary"
+            onClick={() => setDeleteConfirmOpen(false)}
+            disabled={deleting}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmAdminDelete}
+            disabled={deleting}
+            style={{
+              padding: '7px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 500,
+              background: 'var(--color-danger)', color: '#fff', border: 'none', cursor: 'pointer',
+              opacity: deleting ? 0.6 : 1,
+            }}
+          >
+            {deleting ? 'Deleting…' : 'Delete Permanently'}
+          </button>
+        </div>
+      </Modal>
     </>
   )
 }
