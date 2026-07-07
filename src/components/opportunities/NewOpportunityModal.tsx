@@ -238,7 +238,7 @@ export function NewOpportunityModal({
           <div>
             <label style={labelStyle}>Stage</label>
             <select value={form.stage} onChange={set('stage')}>
-              {(['PROSPECTING','QUALIFIED','PROPOSAL','NEGOTIATION','WON','LOST'] as OpportunityStage[]).map(s => (
+              {(['PROSPECTING','QUALIFIED','PROPOSAL','NEGOTIATION'] as OpportunityStage[]).map(s => (
                 <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase().replace('_',' ')}</option>
               ))}
             </select>

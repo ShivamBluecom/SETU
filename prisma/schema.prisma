@@ -32,7 +32,7 @@ model Territory {
 model BusinessUnit {
   id        String   @id @default(cuid())
   name      String
-  buType    String?  @db.NVarChar(100) // ISG | NETWORKING_AV | ISS | BC_MICROSOFT | CLOUD
+  buType    String?  @db.NVarChar(100) // ISG | NETWORKING_AV | ISS | SSG | CLOUD
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

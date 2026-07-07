@@ -53,6 +53,7 @@ export function OpportunityDrawer({
 }: OpportunityDrawerProps) {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
+  const currentUserRole = (session?.user as { role?: string } | undefined)?.role
   const { showToast } = useToast()
 
   const [opp, setOpp] = useState<OpportunityWithRelations | null>(null)
@@ -157,6 +158,20 @@ export function OpportunityDrawer({
     }
   }
 
+  const handleAdminDelete = async () => {
+    if (!opp) return
+    if (!window.confirm(`Delete "${opp.title}"? This cannot be undone.`)) return
+    const res = await fetch(`/api/opportunities/${opp.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      showToast('Opportunity deleted', 'success')
+      onClose()
+      onUpdated?.()
+    } else {
+      const err = await res.json().catch(() => null)
+      showToast(err?.error ?? 'Failed to delete', 'error')
+    }
+  }
+
   const handleDeleteService = async (svcId: string) => {
     if (!opp) return
     const res = await fetch(`/api/opportunities/${opp.id}/services/${svcId}`, { method: 'DELETE' })
@@ -243,6 +258,20 @@ export function OpportunityDrawer({
                     onClick={() => setShareOpen(true)}
                   >
                     <Share2 size={13} /> Share
+                  </button>
+                )}
+                {currentUserRole === 'ADMIN' && (
+                  <button
+                    onClick={handleAdminDelete}
+                    title="Delete opportunity"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '32px', height: '32px', borderRadius: '6px',
+                      border: '0.5px solid var(--color-danger)', background: 'transparent',
+                      cursor: 'pointer', color: 'var(--color-danger)',
+                    }}
+                  >
+                    <Trash2 size={14} />
                   </button>
                 )}
                 <button

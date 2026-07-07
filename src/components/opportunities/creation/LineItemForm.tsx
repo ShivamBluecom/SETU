@@ -24,10 +24,10 @@ interface LineItemFormProps {
 
 interface BUOption { id: string; name: string; buType?: string | null }
 
-const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'BC_MICROSOFT', 'CLOUD']
+const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'SSG', 'CLOUD']
 const BU_TYPE_LABELS: Record<string, string> = {
   ISG: 'ISG', NETWORKING_AV: 'Networking & AV', ISS: 'ISS',
-  BC_MICROSOFT: 'BC Microsoft', CLOUD: 'Cloud',
+  SSG: 'SSG', CLOUD: 'Cloud',
 }
 
 const LABEL_STYLE: React.CSSProperties = {

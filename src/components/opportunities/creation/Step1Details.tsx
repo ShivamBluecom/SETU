@@ -21,8 +21,6 @@ const STAGE_OPTIONS = [
   { value: 'QUALIFIED', label: 'Qualified' },
   { value: 'PROPOSAL', label: 'Proposal' },
   { value: 'NEGOTIATION', label: 'Negotiation' },
-  { value: 'WON', label: 'Won' },
-  { value: 'LOST', label: 'Lost' },
 ]
 
 const PRIORITY_OPTIONS = [
