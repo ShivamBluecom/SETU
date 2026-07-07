@@ -13,7 +13,7 @@ interface Step1DetailsProps {
   onNext: (opportunityId: string) => void
 }
 
-interface SelectOption { id: string; name: string }
+interface SelectOption { id: string; name: string; createdById?: string | null }
 interface ContactOption { id: string; name: string; designation?: string | null }
 
 const STAGE_OPTIONS = [
@@ -68,7 +68,7 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
 
   // Load reference data
   useEffect(() => {
-    fetch('/api/companies').then(r => r.json()).then(d => setCompanies(d.map((c: SelectOption) => ({ id: c.id, name: c.name }))))
+    fetch('/api/companies').then(r => r.json()).then(d => setCompanies(d.map((c: SelectOption) => ({ id: c.id, name: c.name, createdById: c.createdById }))))
     fetch('/api/territories').then(r => r.json()).then(d => setTerritories(d))
   }, [])
 
@@ -117,6 +117,8 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
   }
 
   const isTerritoryLocked = user?.role === 'TERRITORY_MANAGER' || user?.role === 'ACCOUNT_MANAGER'
+  const selectedCompany = companies.find(c => c.id === form.companyId)
+  const canAddContact = user?.role === 'ADMIN' || selectedCompany?.createdById === user?.id
 
   const availableAdditionalContacts = contacts.filter(
     c => c.id !== form.primaryContactId && !additionalContactIds.includes(c.id)
@@ -242,7 +244,7 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
             <label style={{ ...labelStyle, marginBottom: 0 }}>Primary Contact *</label>
-            {!showContactForm && form.companyId && (
+            {!showContactForm && form.companyId && canAddContact && (
               <button
                 type="button"
                 onClick={() => setShowContactForm(true)}

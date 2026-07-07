@@ -50,7 +50,7 @@ export function CompanyTabs({ contacts, opportunities, companyId, canEdit }: Pro
         }}>
           <Tabs.List style={{ display: 'flex', gap: '0' }}>
             <Tabs.Trigger value="contacts" style={tabStyle(tab === 'contacts')}>
-              Contacts ({contacts.length})
+              Contacts {canEdit ? `(${contacts.length})` : ''}
             </Tabs.Trigger>
             <Tabs.Trigger value="opportunities" style={tabStyle(tab === 'opportunities')}>
               Opportunities ({opportunities.length})
@@ -69,7 +69,15 @@ export function CompanyTabs({ contacts, opportunities, companyId, canEdit }: Pro
         </div>
 
         <Tabs.Content value="contacts">
-          <ContactTable contacts={contacts} showCompany={false} onRefresh={() => router.refresh()} />
+          {canEdit ? (
+            <ContactTable contacts={contacts} showCompany={false} onRefresh={() => router.refresh()} />
+          ) : (
+            <div style={{ padding: '32px 0', textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-3)' }}>
+                Contacts are only visible to the company owner.
+              </p>
+            </div>
+          )}
         </Tabs.Content>
 
         <Tabs.Content value="opportunities">

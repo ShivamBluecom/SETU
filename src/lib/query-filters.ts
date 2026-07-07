@@ -23,14 +23,7 @@ export function getOpportunityFilter(user: SessionUser): Prisma.OpportunityWhere
       return { territoryId: user.territoryId }
 
     case 'ACCOUNT_MANAGER':
-      if (!user.territoryIds.length) return { OR: [{ createdById: user.id }, pocClause] }
-      return {
-        OR: [
-          { territoryId: { in: user.territoryIds } },
-          { createdById: user.id },
-          pocClause,
-        ],
-      }
+      return { OR: [{ createdById: user.id }, pocClause] }
 
     case 'ADMIN':
       return {}
