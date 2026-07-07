@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getOpportunityFilter } from '@/lib/query-filters'
@@ -48,7 +49,9 @@ export default async function OpportunitiesPage() {
           Opportunities
         </h1>
       </div>
-      <OpportunitiesClient opportunities={opportunities} currentUserId={user.id} />
+      <Suspense fallback={null}>
+        <OpportunitiesClient opportunities={opportunities} currentUserId={user.id} />
+      </Suspense>
     </div>
   )
 }

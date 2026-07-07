@@ -16,7 +16,7 @@ interface NewOpportunityModalProps {
   onCreated: () => void
 }
 
-interface SelectOption { id: string; name: string }
+interface SelectOption { id: string; name: string; createdById?: string | null }
 
 const BLANK_FORM = (stage: OpportunityStage) => ({
   title: '',
@@ -65,6 +65,9 @@ export function NewOpportunityModal({
 
   const [form, setForm] = useState(BLANK_FORM(defaultStage))
 
+  const selectedCompany = companies.find(c => c.id === form.companyId)
+  const canAddContact = currentUser?.role === 'ADMIN' || selectedCompany?.createdById === currentUser?.id
+
   // Filter BUs and territories to only what this role can access
   const visibleBUs = useMemo(() => {
     if (!currentUser || !buLocked || !currentUser.buId) return allBUs
@@ -81,7 +84,7 @@ export function NewOpportunityModal({
     if (!open) return
     setShowCompanyForm(false)
     setShowContactForm(false)
-    fetch('/api/companies').then(r => r.json()).then(d => setCompanies(d.map((c: SelectOption) => ({ id: c.id, name: c.name }))))
+    fetch('/api/companies').then(r => r.json()).then(d => setCompanies(d.map((c: SelectOption) => ({ id: c.id, name: c.name, createdById: c.createdById }))))
     fetch('/api/business-units').then(r => r.json()).then(d => setAllBUs(d.map((b: SelectOption) => ({ id: b.id, name: b.name }))))
     fetch('/api/territories').then(r => r.json()).then(d => setAllTerritories(d.map((t: SelectOption) => ({ id: t.id, name: t.name }))))
   }, [open])
@@ -176,7 +179,7 @@ export function NewOpportunityModal({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <label style={{ ...labelStyle, marginBottom: 0 }}>Primary Contact</label>
-              {!showContactForm && form.companyId && (
+              {!showContactForm && form.companyId && canAddContact && (
                 <button
                   type="button"
                   onClick={() => setShowContactForm(true)}
@@ -235,7 +238,7 @@ export function NewOpportunityModal({
           <div>
             <label style={labelStyle}>Stage</label>
             <select value={form.stage} onChange={set('stage')}>
-              {(['PROSPECTING','QUALIFIED','PROPOSAL','NEGOTIATION','WON','LOST'] as OpportunityStage[]).map(s => (
+              {(['PROSPECTING','QUALIFIED','PROPOSAL','NEGOTIATION'] as OpportunityStage[]).map(s => (
                 <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase().replace('_',' ')}</option>
               ))}
             </select>

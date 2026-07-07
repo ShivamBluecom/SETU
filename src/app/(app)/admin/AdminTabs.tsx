@@ -31,9 +31,9 @@ const ROLE_LABELS: Record<UserRole, string> = {
   BU_HEAD: 'BU Head', TERRITORY_MANAGER: 'Territory Manager', ADMIN: 'Admin',
 }
 
-const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'BC_MICROSOFT', 'CLOUD']
+const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'SSG', 'CLOUD']
 const BU_TYPE_LABELS: Record<string, string> = {
-  ISG: 'ISG', NETWORKING_AV: 'Networking & AV', ISS: 'ISS', BC_MICROSOFT: 'BC Microsoft', CLOUD: 'Cloud',
+  ISG: 'ISG', NETWORKING_AV: 'Networking & AV', ISS: 'ISS', SSG: 'SSG', CLOUD: 'Cloud',
 }
 
 interface AdminTabsProps {

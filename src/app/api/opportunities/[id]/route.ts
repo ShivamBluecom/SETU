@@ -147,7 +147,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (opp.createdById !== user.id && user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-  if (opp.status !== 'DRAFT') {
+  if (user.role !== 'ADMIN' && opp.status !== 'DRAFT') {
     return NextResponse.json({ error: 'Only draft opportunities can be deleted' }, { status: 400 })
   }
 

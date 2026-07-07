@@ -43,7 +43,7 @@ export const ISS_SUBCATEGORIES = [
   'Threat Intelligence', 'GRC Platforms', 'Vulnerability Management',
 ]
 
-export const BC_MICROSOFT_SUBCATEGORIES = [
+export const SSG_SUBCATEGORIES = [
   'M365 Business Basic', 'M365 Business Standard', 'M365 Business Premium',
   'M365 Enterprise E3', 'M365 Enterprise E5', 'M365 Frontline F1', 'M365 Frontline F3',
   'Windows Server', 'SQL Server', 'Exchange Server', 'SharePoint Server', 'CALs',
@@ -113,11 +113,11 @@ export const BU_FIELD_CONFIG: Record<string, BUConfig> = {
     ],
   },
 
-  BC_MICROSOFT: {
+  SSG: {
     showQtyUnitPrice: false,
     totalValueFormula: 'LICENCE_X_PRICE',
     fields: [
-      { key: 'subcategory', label: 'Subcategory', type: 'select', options: BC_MICROSOFT_SUBCATEGORIES, required: true },
+      { key: 'subcategory', label: 'Subcategory', type: 'select', options: SSG_SUBCATEGORIES, required: true },
       { key: 'oem', label: 'OEM', type: 'select', oemManaged: true, required: true },
       { key: 'skuId', label: 'SKU ID', type: 'text', required: true, placeholder: 'e.g. CFQ7TTC0LH18:0001', hint: 'Microsoft SKU / part number from price list' },
       { key: 'productDescription', label: 'Product Description', type: 'text', required: true },

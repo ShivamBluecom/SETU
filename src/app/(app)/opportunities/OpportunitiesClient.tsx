@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Trash2, Search, X } from 'lucide-react'
 import { StageBadge } from '@/components/ui/StageBadge'
 import { PriorityDot } from '@/components/ui/PriorityDot'
@@ -52,12 +52,20 @@ const filterInputStyle: React.CSSProperties = {
 
 export function OpportunitiesClient({ opportunities: initial, currentUserId }: OpportunitiesClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [opps, setOpps] = useState<Opp[]>(initial)
   // Sync when router.refresh() delivers updated server data
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setOpps(initial) }, [initial])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+
+  // Open drawer when navigated here with ?open=<id> (e.g. from dashboard)
+  useEffect(() => {
+    const openId = searchParams.get('open')
+    if (openId) { setSelectedId(openId); setDrawerOpen(true) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Filter state
   const [search, setSearch] = useState('')

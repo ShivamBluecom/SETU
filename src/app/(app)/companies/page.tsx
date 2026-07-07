@@ -4,10 +4,12 @@ import { CompanyTable } from '@/components/companies/CompanyTable'
 import { NewCompanyButton } from './NewCompanyButton'
 import { BulkImportButton } from '@/components/companies/BulkImportButton'
 import type { CompanyWithCounts } from '@/types/api'
+import type { SessionUser } from '@/types/api'
 
 export default async function CompaniesPage() {
   const session = await auth()
   if (!session) return null
+  const user = session.user as SessionUser
 
   const companies = await prisma.company.findMany({
     include: {
@@ -38,7 +40,7 @@ export default async function CompaniesPage() {
           <NewCompanyButton />
         </div>
       </div>
-      <CompanyTable companies={enriched} />
+      <CompanyTable companies={enriched} currentUserId={user.id} />
     </div>
   )
 }
