@@ -14,6 +14,7 @@ export default async function CompaniesPage() {
   const companies = await prisma.company.findMany({
     include: {
       territory: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, name: true } },
       _count: { select: { opportunities: true, contacts: true } },
       opportunities: {
         where: { stage: { notIn: ['WON', 'LOST'] } },
