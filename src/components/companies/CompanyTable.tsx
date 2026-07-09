@@ -128,7 +128,6 @@ export function CompanyTable({ companies, currentUserId }: CompanyTableProps) {
                 <th>Company</th>
                 <th>Industry</th>
                 <th>Territory</th>
-                {ownerFilter === 'mine' && <th>Head Office</th>}
                 <th>Open Opps</th>
                 {ownerFilter === 'mine' && <th>Pipeline Value</th>}
                 {ownerFilter === 'all'  && <th>Created By</th>}
@@ -144,7 +143,6 @@ export function CompanyTable({ companies, currentUserId }: CompanyTableProps) {
                   <td style={{ color: 'var(--color-text-1)', fontWeight: 500 }}>{company.name}</td>
                   <td>{company.industry ?? <span style={{ color: 'var(--color-text-3)' }}>—</span>}</td>
                   <td>{company.territory?.name ?? <span style={{ color: 'var(--color-text-3)' }}>—</span>}</td>
-                  {ownerFilter === 'mine' && <td>{company.headOffice ?? <span style={{ color: 'var(--color-text-3)' }}>—</span>}</td>}
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
                       {company.openOpportunities ?? company._count.opportunities}
