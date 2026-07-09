@@ -66,6 +66,7 @@ export type NoteWithAuthor = Note & {
 
 export type CompanyWithCounts = Company & {
   territory: Pick<Territory, 'id' | 'name'> | null
+  createdBy: Pick<User, 'id' | 'name'> | null
   _count: { opportunities: number; contacts: number }
   openOpportunities?: number
   pipelineValue?: number

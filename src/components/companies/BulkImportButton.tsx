@@ -449,6 +449,18 @@ export function BulkImportButton() {
         onChange={handleFileChange}
       />
       <button
+        onClick={downloadTemplate}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '5px',
+          fontSize: '13px', color: 'var(--color-text-3)',
+          background: 'none', border: '0.5px solid var(--color-border)',
+          borderRadius: '6px', cursor: 'pointer', fontFamily: 'inherit',
+          padding: '6px 10px', height: '34px',
+        }}
+      >
+        <Download size={13} /> Template
+      </button>
+      <button
         className="btn-secondary"
         onClick={() => fileInputRef.current?.click()}
         style={{ display: 'flex', alignItems: 'center', gap: '6px' }}

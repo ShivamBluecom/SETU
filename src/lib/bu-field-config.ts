@@ -122,7 +122,6 @@ export const BU_FIELD_CONFIG: Record<string, BUConfig> = {
       { key: 'skuId', label: 'SKU ID', type: 'text', required: true, placeholder: 'e.g. CFQ7TTC0LH18:0001', hint: 'Microsoft SKU / part number from price list' },
       { key: 'productDescription', label: 'Product Description', type: 'text', required: true },
       { key: 'licenceType', label: 'Licence Type', type: 'select', options: LICENCE_TYPES, required: true },
-      { key: 'licenceCount', label: 'Licence Count', type: 'number', required: true, placeholder: 'Number of licences' },
       { key: 'renewalDate', label: 'Renewal Date', type: 'date', required: true, hint: 'Date format: DD/MM/YYYY' },
       { key: 'opportunityType', label: 'Opportunity Type', type: 'select', options: OPPORTUNITY_TYPES, required: true },
       { key: 'oemDrNumber', label: 'OEM DR Number', type: 'text', required: false },
