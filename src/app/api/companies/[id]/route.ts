@@ -46,6 +46,32 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(company)
 }
 
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const user = session.user as SessionUser
+  if (user.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const company = await prisma.company.findUnique({
+    where: { id: params.id },
+    select: { id: true, _count: { select: { opportunities: true } } },
+  })
+  if (!company) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  if (company._count.opportunities > 0) {
+    return NextResponse.json(
+      { error: `This company has ${company._count.opportunities} linked opportunity${company._count.opportunities === 1 ? '' : 's'}. Delete all opportunities first.` },
+      { status: 409 }
+    )
+  }
+
+  await prisma.contact.deleteMany({ where: { companyId: params.id } })
+  await prisma.company.delete({ where: { id: params.id } })
+
+  return NextResponse.json({ success: true })
+}
+
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

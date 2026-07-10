@@ -24,6 +24,7 @@ export default async function CompanyDetailPage({ params }: Props) {
         include: { company: { select: { id: true, name: true } } },
         orderBy: { name: 'asc' },
       },
+      _count: { select: { contacts: true, opportunities: true } },
       opportunities: {
         where: oppFilter,
         include: {
@@ -40,10 +41,11 @@ export default async function CompanyDetailPage({ params }: Props) {
   if (!company) notFound()
 
   const canEdit = user.role === 'ADMIN' || company.createdById === user.id
+  const isAdmin = user.role === 'ADMIN'
 
   return (
     <div>
-      <CompanyHeader company={company} canEdit={canEdit} />
+      <CompanyHeader company={company} canEdit={canEdit} isAdmin={isAdmin} />
       <CompanyTabs contacts={company.contacts} opportunities={company.opportunities} companyId={company.id} canEdit={canEdit} />
     </div>
   )
