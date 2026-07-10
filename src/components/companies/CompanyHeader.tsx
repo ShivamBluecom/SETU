@@ -1,15 +1,18 @@
 import type { Company, Territory } from '@prisma/client'
 import { CompanyEditButton } from './CompanyEditButton'
+import { CompanyDeleteButton } from './CompanyDeleteButton'
 
 interface CompanyHeaderProps {
   company: Company & {
     territory: Pick<Territory, 'id' | 'name'> | null
     createdBy: { id: string; name: string } | null
+    _count: { contacts: number; opportunities: number }
   }
   canEdit?: boolean
+  isAdmin?: boolean
 }
 
-export function CompanyHeader({ company, canEdit }: CompanyHeaderProps) {
+export function CompanyHeader({ company, canEdit, isAdmin }: CompanyHeaderProps) {
   return (
     <div style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -48,6 +51,13 @@ export function CompanyHeader({ company, canEdit }: CompanyHeaderProps) {
           </span>
         )}
         {canEdit && <CompanyEditButton company={company} />}
+        {isAdmin && (
+          <CompanyDeleteButton
+            companyId={company.id}
+            companyName={company.name}
+            contactCount={company._count.contacts}
+          />
+        )}
       </div>
       {company.headOffice && (
         <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--color-text-3)' }}>
