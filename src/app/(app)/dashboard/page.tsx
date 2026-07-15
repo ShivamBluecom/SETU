@@ -36,9 +36,11 @@ export default async function DashboardPage() {
   const user = session.user as SessionUser
   const filter = getOpportunityFilter(user)
 
+  const createdFilter = { AND: [filter, { status: 'CREATED' }] }
+
   const [allOpps, recentOpps] = await Promise.all([
     prisma.opportunity.findMany({
-      where: filter,
+      where: createdFilter,
       select: {
         stage: true,
         priority: true,
@@ -50,7 +52,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.opportunity.findMany({
-      where: filter,
+      where: createdFilter,
       include: {
         company: { select: { id: true, name: true, industry: true } },
         primaryContact: { select: { id: true, name: true, designation: true, email: true, phone: true } },
@@ -58,7 +60,6 @@ export default async function DashboardPage() {
         territory: { select: { id: true, name: true } },
       },
       orderBy: { updatedAt: 'desc' },
-      take: 10,
     }),
   ])
 
