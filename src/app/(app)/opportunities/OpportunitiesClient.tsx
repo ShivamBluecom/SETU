@@ -10,6 +10,22 @@ import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatINR, formatDate } from '@/lib/format'
 
+type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
+
+function getFiscalQuarterRange(q: Quarter): { start: Date; end: Date } {
+  const now = new Date()
+  const fyStart = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1
+  // months are 0-indexed
+  const ranges: Record<Quarter, [number, number, number, number, number, number]> = {
+    Q1: [fyStart,     3,  1, fyStart,      5, 30],
+    Q2: [fyStart,     6,  1, fyStart,      8, 30],
+    Q3: [fyStart,     9,  1, fyStart,     11, 31],
+    Q4: [fyStart + 1, 0,  1, fyStart + 1,  2, 31],
+  }
+  const [sy, sm, sd, ey, em, ed] = ranges[q]
+  return { start: new Date(sy, sm, sd, 0, 0, 0), end: new Date(ey, em, ed, 23, 59, 59) }
+}
+
 interface Opp {
   id: string
   title: string
@@ -17,6 +33,7 @@ interface Opp {
   stage: string
   priority: string
   value: number | string
+  createdAt: string | Date
   updatedAt: string | Date
   company: { id: string; name: string }
   createdBy: { id: string; name: string }
@@ -73,6 +90,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   const [filterOwner, setFilterOwner] = useState('')
   const [filterTerritory, setFilterTerritory] = useState('')
   const [filterCompany, setFilterCompany] = useState('')
+  const [filterDate, setFilterDate] = useState<'' | Quarter>('')
 
   // Unique values for dropdowns (derived from full list)
   const stages = useMemo(() => [...new Set(opps.map(o => o.stage))].sort(), [opps])
@@ -89,7 +107,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     return opps.filter(o => !seen.has(o.company.id) && seen.add(o.company.id)).map(o => o.company)
   }, [opps])
 
-  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany
+  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany || filterDate
 
   const clearFilters = () => {
     setSearch('')
@@ -97,6 +115,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     setFilterOwner('')
     setFilterTerritory('')
     setFilterCompany('')
+    setFilterDate('')
   }
 
   const filtered = useMemo(() => {
@@ -114,9 +133,14 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
       if (filterOwner && o.createdBy.id !== filterOwner) return false
       if (filterTerritory && o.territory?.id !== filterTerritory) return false
       if (filterCompany && o.company.id !== filterCompany) return false
+      if (filterDate) {
+        const { start, end } = getFiscalQuarterRange(filterDate)
+        const d = new Date(o.createdAt)
+        if (d < start || d > end) return false
+      }
       return true
     })
-  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany])
+  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, filterDate])
 
   const handleRowClick = (opp: Opp, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-delete]')) return
@@ -234,6 +258,19 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           {companies.map(c => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
+        </select>
+
+        {/* Quarter */}
+        <select
+          value={filterDate}
+          onChange={e => setFilterDate(e.target.value as '' | Quarter)}
+          style={{ ...filterInputStyle, width: 'auto', paddingRight: '28px' }}
+        >
+          <option value="">All time</option>
+          <option value="Q1">Q1 (Apr – Jun)</option>
+          <option value="Q2">Q2 (Jul – Sep)</option>
+          <option value="Q3">Q3 (Oct – Dec)</option>
+          <option value="Q4">Q4 (Jan – Mar)</option>
         </select>
 
         {/* Clear */}

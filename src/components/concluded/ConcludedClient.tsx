@@ -63,7 +63,12 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
       o.title.toLowerCase().includes(q) ||
       o.company.name.toLowerCase().includes(q) ||
       o.createdBy.name.toLowerCase().includes(q) ||
-      `setu-${o.id}`.toLowerCase().includes(q)
+      `setu-${o.id}`.toLowerCase().includes(q) ||
+      (o.territory?.name ?? '').toLowerCase().includes(q) ||
+      (o.lossReason ?? '').toLowerCase().includes(q) ||
+      (o.lostTo ?? '').toLowerCase().includes(q) ||
+      (o.poNumber ?? '').toLowerCase().includes(q) ||
+      (o.keyDecisionMaker ?? '').toLowerCase().includes(q)
     )
   }, [current, search])
 
@@ -105,7 +110,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search title, company, owner…"
+            placeholder="Search by title, ID, company, territory…"
             style={{ ...filterInputStyle, paddingLeft: '30px', width: '240px' }}
           />
         </div>

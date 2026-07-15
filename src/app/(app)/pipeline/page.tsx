@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import {
   DndContext,
   DragEndEvent,
@@ -14,6 +15,7 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import { KanbanCard } from '@/components/opportunities/KanbanCard'
 import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
 import { useToast } from '@/contexts/ToastContext'
+import { formatINRCompact } from '@/lib/format'
 import type { OpportunityWithRelations } from '@/types/api'
 import type { OpportunityStage } from '@/types/enums'
 
@@ -27,6 +29,11 @@ const STAGES: { stage: OpportunityStage; label: string }[] = [
 export default function PipelinePage() {
   const { showToast } = useToast()
   const router = useRouter()
+  const { data: session } = useSession()
+  const currentUserId = (session?.user as { id?: string } | undefined)?.id
+  const currentUserRole = (session?.user as { role?: string } | undefined)?.role
+  const shouldFilterOwn = currentUserRole === 'ADMIN' || currentUserRole === 'TERRITORY_MANAGER'
+
   const [opps, setOpps] = useState<OpportunityWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -48,7 +55,13 @@ export default function PipelinePage() {
   useEffect(() => { load() }, [load])
 
   const byStage = (stage: string) =>
-    opps.filter(o => o.stage === stage).sort((a, b) => a.orderIndex - b.orderIndex)
+    opps
+      .filter(o => o.stage === stage)
+      .filter(o => !shouldFilterOwn || o.createdBy?.id === currentUserId)
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+
+  const stageValue = (stage: string) =>
+    byStage(stage).reduce((sum, o) => sum + Number(o.value), 0)
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
@@ -144,17 +157,19 @@ export default function PipelinePage() {
                     style={{
                       ...headerStyle,
                       padding: '10px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
                     }}
                   >
-                    <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em' }}>
-                      {label}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', opacity: 0.7 }}>
-                      {cards.length}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em' }}>
+                        {label}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', opacity: 0.7 }}>
+                        {cards.length}
+                      </span>
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)', marginTop: '2px' }}>
+                      {formatINRCompact(stageValue(stage))}
+                    </div>
                   </div>
 
                   <div
