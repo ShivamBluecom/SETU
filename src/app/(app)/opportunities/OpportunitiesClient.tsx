@@ -12,18 +12,16 @@ import { formatINR, formatDate } from '@/lib/format'
 
 type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 
-function getFiscalQuarterRange(q: Quarter): { start: Date; end: Date } {
+function getQuarterDates(q: Quarter): { from: string; to: string } {
   const now = new Date()
-  const fyStart = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1
-  // months are 0-indexed
-  const ranges: Record<Quarter, [number, number, number, number, number, number]> = {
-    Q1: [fyStart,     3,  1, fyStart,      5, 30],
-    Q2: [fyStart,     6,  1, fyStart,      8, 30],
-    Q3: [fyStart,     9,  1, fyStart,     11, 31],
-    Q4: [fyStart + 1, 0,  1, fyStart + 1,  2, 31],
+  const fy = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1
+  const map: Record<Quarter, { from: string; to: string }> = {
+    Q1: { from: `${fy}-04-01`,     to: `${fy}-06-30` },
+    Q2: { from: `${fy}-07-01`,     to: `${fy}-09-30` },
+    Q3: { from: `${fy}-10-01`,     to: `${fy}-12-31` },
+    Q4: { from: `${fy + 1}-01-01`, to: `${fy + 1}-03-31` },
   }
-  const [sy, sm, sd, ey, em, ed] = ranges[q]
-  return { start: new Date(sy, sm, sd, 0, 0, 0), end: new Date(ey, em, ed, 23, 59, 59) }
+  return map[q]
 }
 
 interface Opp {
@@ -90,7 +88,8 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   const [filterOwner, setFilterOwner] = useState('')
   const [filterTerritory, setFilterTerritory] = useState('')
   const [filterCompany, setFilterCompany] = useState('')
-  const [filterDate, setFilterDate] = useState<'' | Quarter>('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   // Unique values for dropdowns (derived from full list)
   const stages = useMemo(() => [...new Set(opps.map(o => o.stage))].sort(), [opps])
@@ -107,7 +106,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     return opps.filter(o => !seen.has(o.company.id) && seen.add(o.company.id)).map(o => o.company)
   }, [opps])
 
-  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany || filterDate
+  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany || dateFrom || dateTo
 
   const clearFilters = () => {
     setSearch('')
@@ -115,7 +114,8 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     setFilterOwner('')
     setFilterTerritory('')
     setFilterCompany('')
-    setFilterDate('')
+    setDateFrom('')
+    setDateTo('')
   }
 
   const filtered = useMemo(() => {
@@ -133,14 +133,11 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
       if (filterOwner && o.createdBy.id !== filterOwner) return false
       if (filterTerritory && o.territory?.id !== filterTerritory) return false
       if (filterCompany && o.company.id !== filterCompany) return false
-      if (filterDate) {
-        const { start, end } = getFiscalQuarterRange(filterDate)
-        const d = new Date(o.createdAt)
-        if (d < start || d > end) return false
-      }
+      if (dateFrom && new Date(o.createdAt) < new Date(dateFrom)) return false
+      if (dateTo && new Date(o.createdAt) > new Date(dateTo + 'T23:59:59')) return false
       return true
     })
-  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, filterDate])
+  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo])
 
   const handleRowClick = (opp: Opp, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-delete]')) return
@@ -260,18 +257,45 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           ))}
         </select>
 
-        {/* Quarter */}
-        <select
-          value={filterDate}
-          onChange={e => setFilterDate(e.target.value as '' | Quarter)}
-          style={{ ...filterInputStyle, width: 'auto', paddingRight: '28px' }}
-        >
-          <option value="">All time</option>
-          <option value="Q1">Q1 (Apr – Jun)</option>
-          <option value="Q2">Q2 (Jul – Sep)</option>
-          <option value="Q3">Q3 (Oct – Dec)</option>
-          <option value="Q4">Q4 (Jan – Mar)</option>
-        </select>
+        {/* Date range */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            style={{ ...filterInputStyle, width: '140px', paddingRight: '8px' }}
+          />
+          <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>–</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            style={{ ...filterInputStyle, width: '140px', paddingRight: '8px' }}
+          />
+        </div>
+        {/* Quarter presets */}
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {(['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+            const { from, to } = getQuarterDates(q)
+            const active = dateFrom === from && dateTo === to
+            return (
+              <button
+                key={q}
+                onClick={() => { setDateFrom(from); setDateTo(to) }}
+                style={{
+                  fontSize: '11px', fontWeight: 500, padding: '0 8px',
+                  height: '34px', border: '1px solid var(--color-border)',
+                  borderRadius: '6px', cursor: 'pointer', fontFamily: 'inherit',
+                  background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+                  color: active ? '#fff' : 'var(--color-text-2)',
+                  transition: 'background 150ms, color 150ms',
+                }}
+              >
+                {q}
+              </button>
+            )
+          })}
+        </div>
 
         {/* Clear */}
         {hasFilters && (

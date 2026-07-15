@@ -30,9 +30,10 @@ export default function PipelinePage() {
   const { showToast } = useToast()
   const router = useRouter()
   const { data: session } = useSession()
-  const currentUserId = (session?.user as { id?: string } | undefined)?.id
-  const currentUserRole = (session?.user as { role?: string } | undefined)?.role
-  const shouldFilterOwn = currentUserRole === 'ADMIN' || currentUserRole === 'TERRITORY_MANAGER'
+  const currentUserId = session?.user?.id
+  const currentUserRole = session?.user?.role as string | undefined
+  const shouldFilterOwn = !!currentUserId &&
+    (currentUserRole === 'ADMIN' || currentUserRole === 'TERRITORY_MANAGER')
 
   const [opps, setOpps] = useState<OpportunityWithRelations[]>([])
   const [loading, setLoading] = useState(true)

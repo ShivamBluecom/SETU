@@ -24,6 +24,7 @@ export default async function ConcludedPage() {
       title: true,
       stage: true,
       value: true,
+      createdAt: true,
       closeDate: true,
       updatedAt: true,
       closingComment: true,
