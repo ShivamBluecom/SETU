@@ -162,7 +162,8 @@ export default function LoginPage() {
         <form
           action={async () => {
             'use server'
-            await signIn('microsoft-entra-id', { redirectTo: '/dashboard' })
+            const redirectTo = process.env.DISABLE_DASHBOARD === 'true' ? '/opportunities' : '/dashboard'
+            await signIn('microsoft-entra-id', { redirectTo })
           }}
         >
           <button type="submit" className="btn-login">
