@@ -31,10 +31,20 @@ function NewOpportunityFlow() {
 
   return (
     <div style={{ maxWidth: '760px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
         <h1 style={{ margin: '0 auto 0 0', fontSize: '18px', fontWeight: 600, color: 'var(--color-text-1)' }}>
           New Opportunity
         </h1>
+        {opportunityId && (
+          <span style={{
+            fontSize: '11px', fontFamily: 'var(--font-mono)',
+            color: 'var(--color-text-3)', background: 'var(--color-surface-2)',
+            padding: '2px 8px', borderRadius: '4px', border: '0.5px solid var(--color-border)',
+            flexShrink: 0,
+          }}>
+            setu-{opportunityId}
+          </span>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
           {STEPS.map((s, i) => (
             <div key={s.num} style={{ display: 'flex', alignItems: 'center' }}>

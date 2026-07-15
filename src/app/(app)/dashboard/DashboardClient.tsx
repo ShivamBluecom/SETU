@@ -304,8 +304,8 @@ export function DashboardClient({
   }
 
   const filteredOpps = useMemo(() => {
-    if (!selectedStage) return recentOpps
-    return recentOpps.filter(o => o.stage === selectedStage)
+    const base = selectedStage ? recentOpps.filter(o => o.stage === selectedStage) : recentOpps
+    return base.slice(0, 10)
   }, [recentOpps, selectedStage])
 
   const modalRows: Record<ModalId, BarRow[]> = {
@@ -358,7 +358,7 @@ export function DashboardClient({
       <div style={{ marginBottom: '28px' }}>
         <SectionLabel>
           Recent Opportunities
-          {stageLabel && (
+          {stageLabel && selectedStage && (
             <span
               style={{
                 fontSize: '11px',
@@ -371,7 +371,7 @@ export function DashboardClient({
                 textTransform: 'none',
               }}
             >
-              {stageLabel} · {filteredOpps.length} of {recentOpps.length}
+              {stageLabel} · showing {filteredOpps.length} of {stageCounts[selectedStage] ?? 0}
             </span>
           )}
         </SectionLabel>

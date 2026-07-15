@@ -2,6 +2,20 @@
 
 import { useState, useMemo } from 'react'
 import { Search } from 'lucide-react'
+
+type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
+
+function getQuarterDates(q: Quarter): { from: string; to: string } {
+  const now = new Date()
+  const fy = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1
+  const map: Record<Quarter, { from: string; to: string }> = {
+    Q1: { from: `${fy}-04-01`,     to: `${fy}-06-30` },
+    Q2: { from: `${fy}-07-01`,     to: `${fy}-09-30` },
+    Q3: { from: `${fy}-10-01`,     to: `${fy}-12-31` },
+    Q4: { from: `${fy + 1}-01-01`, to: `${fy + 1}-03-31` },
+  }
+  return map[q]
+}
 import { Avatar } from '@/components/ui/Avatar'
 import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -12,6 +26,7 @@ interface ConcludedOpp {
   title: string
   stage: string
   value: number
+  createdAt: string | Date
   closeDate: string | Date | null
   updatedAt: string | Date
   closingComment: string | null
@@ -49,6 +64,8 @@ const filterInputStyle: React.CSSProperties = {
 export function ConcludedClient({ opportunities }: ConcludedClientProps) {
   const [tab, setTab] = useState<'WON' | 'LOST'>('WON')
   const [search, setSearch] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -57,14 +74,26 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
   const current = tab === 'WON' ? won : lost
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return current
-    const q = search.toLowerCase()
-    return current.filter(o =>
-      o.title.toLowerCase().includes(q) ||
-      o.company.name.toLowerCase().includes(q) ||
-      o.createdBy.name.toLowerCase().includes(q)
-    )
-  }, [current, search])
+    return current.filter(o => {
+      if (search.trim()) {
+        const q = search.toLowerCase()
+        const hit =
+          o.title.toLowerCase().includes(q) ||
+          o.company.name.toLowerCase().includes(q) ||
+          o.createdBy.name.toLowerCase().includes(q) ||
+          `setu-${o.id}`.toLowerCase().includes(q) ||
+          (o.territory?.name ?? '').toLowerCase().includes(q) ||
+          (o.lossReason ?? '').toLowerCase().includes(q) ||
+          (o.lostTo ?? '').toLowerCase().includes(q) ||
+          (o.poNumber ?? '').toLowerCase().includes(q) ||
+          (o.keyDecisionMaker ?? '').toLowerCase().includes(q)
+        if (!hit) return false
+      }
+      if (dateFrom && new Date(o.createdAt) < new Date(dateFrom)) return false
+      if (dateTo && new Date(o.createdAt) > new Date(dateTo + 'T23:59:59')) return false
+      return true
+    })
+  }, [current, search, dateFrom, dateTo])
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     padding: '6px 16px',
@@ -85,9 +114,9 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
 
   return (
     <>
-      {/* Tabs + search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: '4px', padding: '4px', background: 'var(--color-surface-2)', borderRadius: '8px' }}>
+      {/* Tabs + filters */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '4px', padding: '4px', background: 'var(--color-surface-2)', borderRadius: '8px', flexShrink: 0 }}>
           <button style={tabStyle(tab === 'WON')} onClick={() => setTab('WON')}>
             Won ({won.length})
           </button>
@@ -96,7 +125,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           </button>
         </div>
 
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           <Search
             size={13}
             style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }}
@@ -104,12 +133,53 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search title, company, owner…"
-            style={{ ...filterInputStyle, paddingLeft: '30px', width: '240px' }}
+            placeholder="Search by title, ID, company, territory…"
+            style={{ ...filterInputStyle, paddingLeft: '30px', width: '220px' }}
           />
         </div>
 
-        {search && (
+        {/* Date range */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            style={{ ...filterInputStyle, width: '140px', paddingRight: '8px' }}
+          />
+          <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>–</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            style={{ ...filterInputStyle, width: '140px', paddingRight: '8px' }}
+          />
+        </div>
+
+        {/* Quarter presets */}
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {(['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+            const { from, to } = getQuarterDates(q)
+            const active = dateFrom === from && dateTo === to
+            return (
+              <button
+                key={q}
+                onClick={() => { setDateFrom(from); setDateTo(to) }}
+                style={{
+                  fontSize: '11px', fontWeight: 500, padding: '0 8px',
+                  height: '34px', border: '1px solid var(--color-border)',
+                  borderRadius: '6px', cursor: 'pointer', fontFamily: 'inherit',
+                  background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+                  color: active ? '#fff' : 'var(--color-text-2)',
+                  transition: 'background 150ms, color 150ms',
+                }}
+              >
+                {q}
+              </button>
+            )
+          })}
+        </div>
+
+        {(search || dateFrom || dateTo) && (
           <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
             {filtered.length} of {current.length}
           </span>
@@ -125,6 +195,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           <table>
             <thead>
               <tr>
+                <th>Opp ID</th>
                 <th>Title</th>
                 <th>Company</th>
                 <th>Final Value</th>
@@ -143,6 +214,11 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
                   style={{ cursor: 'pointer' }}
                   onClick={() => { setSelectedId(opp.id); setDrawerOpen(true) }}
                 >
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                      setu-{opp.id}
+                    </span>
+                  </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
                     {opp.title}
                   </td>
@@ -173,6 +249,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           <table>
             <thead>
               <tr>
+                <th>Opp ID</th>
                 <th>Title</th>
                 <th>Company</th>
                 <th>Loss Reason</th>
@@ -190,6 +267,11 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
                   style={{ cursor: 'pointer' }}
                   onClick={() => { setSelectedId(opp.id); setDrawerOpen(true) }}
                 >
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                      setu-{opp.id}
+                    </span>
+                  </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
                     {opp.title}
                   </td>

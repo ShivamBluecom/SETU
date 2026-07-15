@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 export default auth((req) => {
   const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth
+  const landing = process.env.DISABLE_DASHBOARD === 'true' ? '/opportunities' : '/dashboard'
 
   if (pathname.startsWith('/api/auth')) return NextResponse.next()
 
@@ -12,11 +13,11 @@ export default auth((req) => {
   }
 
   if (isLoggedIn && pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    return NextResponse.redirect(new URL(landing, req.url))
   }
 
   if (pathname.startsWith('/admin') && req.auth?.user?.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    return NextResponse.redirect(new URL(landing, req.url))
   }
 })
 

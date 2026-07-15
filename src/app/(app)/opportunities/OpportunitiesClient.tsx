@@ -10,6 +10,20 @@ import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatINR, formatDate } from '@/lib/format'
 
+type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
+
+function getQuarterDates(q: Quarter): { from: string; to: string } {
+  const now = new Date()
+  const fy = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1
+  const map: Record<Quarter, { from: string; to: string }> = {
+    Q1: { from: `${fy}-04-01`,     to: `${fy}-06-30` },
+    Q2: { from: `${fy}-07-01`,     to: `${fy}-09-30` },
+    Q3: { from: `${fy}-10-01`,     to: `${fy}-12-31` },
+    Q4: { from: `${fy + 1}-01-01`, to: `${fy + 1}-03-31` },
+  }
+  return map[q]
+}
+
 interface Opp {
   id: string
   title: string
@@ -17,6 +31,7 @@ interface Opp {
   stage: string
   priority: string
   value: number | string
+  createdAt: string | Date
   updatedAt: string | Date
   company: { id: string; name: string }
   createdBy: { id: string; name: string }
@@ -73,6 +88,8 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   const [filterOwner, setFilterOwner] = useState('')
   const [filterTerritory, setFilterTerritory] = useState('')
   const [filterCompany, setFilterCompany] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   // Unique values for dropdowns (derived from full list)
   const stages = useMemo(() => [...new Set(opps.map(o => o.stage))].sort(), [opps])
@@ -89,7 +106,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     return opps.filter(o => !seen.has(o.company.id) && seen.add(o.company.id)).map(o => o.company)
   }, [opps])
 
-  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany
+  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany || dateFrom || dateTo
 
   const clearFilters = () => {
     setSearch('')
@@ -97,6 +114,8 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     setFilterOwner('')
     setFilterTerritory('')
     setFilterCompany('')
+    setDateFrom('')
+    setDateTo('')
   }
 
   const filtered = useMemo(() => {
@@ -106,16 +125,19 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
         const hit =
           o.title.toLowerCase().includes(q) ||
           o.company.name.toLowerCase().includes(q) ||
-          o.createdBy.name.toLowerCase().includes(q)
+          o.createdBy.name.toLowerCase().includes(q) ||
+          `setu-${o.id}`.toLowerCase().includes(q)
         if (!hit) return false
       }
       if (filterStage && o.stage !== filterStage) return false
       if (filterOwner && o.createdBy.id !== filterOwner) return false
       if (filterTerritory && o.territory?.id !== filterTerritory) return false
       if (filterCompany && o.company.id !== filterCompany) return false
+      if (dateFrom && new Date(o.createdAt) < new Date(dateFrom)) return false
+      if (dateTo && new Date(o.createdAt) > new Date(dateTo + 'T23:59:59')) return false
       return true
     })
-  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany])
+  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo])
 
   const handleRowClick = (opp: Opp, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-delete]')) return
@@ -235,6 +257,46 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           ))}
         </select>
 
+        {/* Date range */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            style={{ ...filterInputStyle, width: '140px', paddingRight: '8px' }}
+          />
+          <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>–</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            style={{ ...filterInputStyle, width: '140px', paddingRight: '8px' }}
+          />
+        </div>
+        {/* Quarter presets */}
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {(['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+            const { from, to } = getQuarterDates(q)
+            const active = dateFrom === from && dateTo === to
+            return (
+              <button
+                key={q}
+                onClick={() => { setDateFrom(from); setDateTo(to) }}
+                style={{
+                  fontSize: '11px', fontWeight: 500, padding: '0 8px',
+                  height: '34px', border: '1px solid var(--color-border)',
+                  borderRadius: '6px', cursor: 'pointer', fontFamily: 'inherit',
+                  background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+                  color: active ? '#fff' : 'var(--color-text-2)',
+                  transition: 'background 150ms, color 150ms',
+                }}
+              >
+                {q}
+              </button>
+            )
+          })}
+        </div>
+
         {/* Clear */}
         {hasFilters && (
           <button
@@ -288,6 +350,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           <table>
             <thead>
               <tr>
+                <th>Opp ID</th>
                 <th>Title</th>
                 <th>Company</th>
                 <th>Status</th>
@@ -307,6 +370,11 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
                   style={{ cursor: 'pointer' }}
                   onClick={e => handleRowClick(opp, e)}
                 >
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                      setu-{opp.id}
+                    </span>
+                  </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
                     {opp.title}
                   </td>
