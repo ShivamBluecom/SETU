@@ -106,7 +106,8 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
         const hit =
           o.title.toLowerCase().includes(q) ||
           o.company.name.toLowerCase().includes(q) ||
-          o.createdBy.name.toLowerCase().includes(q)
+          o.createdBy.name.toLowerCase().includes(q) ||
+          `setu-${o.id}`.toLowerCase().includes(q)
         if (!hit) return false
       }
       if (filterStage && o.stage !== filterStage) return false
@@ -288,6 +289,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           <table>
             <thead>
               <tr>
+                <th>Opp ID</th>
                 <th>Title</th>
                 <th>Company</th>
                 <th>Status</th>
@@ -307,6 +309,11 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
                   style={{ cursor: 'pointer' }}
                   onClick={e => handleRowClick(opp, e)}
                 >
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                      setu-{opp.id}
+                    </span>
+                  </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
                     {opp.title}
                   </td>

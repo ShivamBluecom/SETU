@@ -62,7 +62,8 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
     return current.filter(o =>
       o.title.toLowerCase().includes(q) ||
       o.company.name.toLowerCase().includes(q) ||
-      o.createdBy.name.toLowerCase().includes(q)
+      o.createdBy.name.toLowerCase().includes(q) ||
+      `setu-${o.id}`.toLowerCase().includes(q)
     )
   }, [current, search])
 
@@ -125,6 +126,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           <table>
             <thead>
               <tr>
+                <th>Opp ID</th>
                 <th>Title</th>
                 <th>Company</th>
                 <th>Final Value</th>
@@ -143,6 +145,11 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
                   style={{ cursor: 'pointer' }}
                   onClick={() => { setSelectedId(opp.id); setDrawerOpen(true) }}
                 >
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                      setu-{opp.id}
+                    </span>
+                  </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
                     {opp.title}
                   </td>
@@ -173,6 +180,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           <table>
             <thead>
               <tr>
+                <th>Opp ID</th>
                 <th>Title</th>
                 <th>Company</th>
                 <th>Loss Reason</th>
@@ -190,6 +198,11 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
                   style={{ cursor: 'pointer' }}
                   onClick={() => { setSelectedId(opp.id); setDrawerOpen(true) }}
                 >
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                      setu-{opp.id}
+                    </span>
+                  </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
                     {opp.title}
                   </td>
