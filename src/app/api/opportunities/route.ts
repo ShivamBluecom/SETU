@@ -34,16 +34,22 @@ export async function GET(req: NextRequest) {
   const filter = getOpportunityFilter(user)
   const { searchParams } = new URL(req.url)
   const includeDrafts = searchParams.get('includeDrafts') === 'true'
+  const pipeline = searchParams.get('pipeline') === 'true'
+
+  // Pipeline view: scope ADMIN and TM to only their own created opps
+  const effectiveFilter = (pipeline && (user.role === 'ADMIN' || user.role === 'TERRITORY_MANAGER'))
+    ? { createdById: user.id }
+    : filter
 
   const where = includeDrafts
     ? {
         OR: [
-          filter,
+          effectiveFilter,
           // Always include user's own drafts regardless of role filter
           { createdById: user.id, status: 'DRAFT' },
         ],
       }
-    : { ...filter, status: 'CREATED' }
+    : { ...effectiveFilter, status: 'CREATED' }
 
   const opportunities = await prisma.opportunity.findMany({
     where,

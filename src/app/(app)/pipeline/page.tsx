@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import {
   DndContext,
   DragEndEvent,
@@ -29,11 +28,6 @@ const STAGES: { stage: OpportunityStage; label: string }[] = [
 export default function PipelinePage() {
   const { showToast } = useToast()
   const router = useRouter()
-  const { data: session } = useSession()
-  const currentUserId = session?.user?.id
-  const currentUserRole = session?.user?.role as string | undefined
-  const shouldFilterOwn = !!currentUserId &&
-    (currentUserRole === 'ADMIN' || currentUserRole === 'TERRITORY_MANAGER')
 
   const [opps, setOpps] = useState<OpportunityWithRelations[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,7 +39,7 @@ export default function PipelinePage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/opportunities?includeDrafts=true')
+      const res = await fetch('/api/opportunities?includeDrafts=true&pipeline=true')
       const data = await res.json()
       setOpps(data)
     } finally {
@@ -58,7 +52,6 @@ export default function PipelinePage() {
   const byStage = (stage: string) =>
     opps
       .filter(o => o.stage === stage)
-      .filter(o => !shouldFilterOwn || o.createdBy?.id === currentUserId)
       .sort((a, b) => a.orderIndex - b.orderIndex)
 
   const stageValue = (stage: string) =>

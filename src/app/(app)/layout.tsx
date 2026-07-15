@@ -7,5 +7,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await auth()
   if (!session?.user?.role) redirect('/login')
 
-  return <Shell user={session.user as SessionUser}>{children}</Shell>
+  const showDashboard = process.env.DISABLE_DASHBOARD !== 'true'
+  return <Shell user={session.user as SessionUser} showDashboard={showDashboard}>{children}</Shell>
 }

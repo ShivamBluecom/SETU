@@ -18,6 +18,7 @@ import type { UserRole } from '@/types/enums'
 
 interface SidebarProps {
   role: UserRole
+  showDashboard: boolean
 }
 
 const NAV = [
@@ -95,12 +96,13 @@ function NavItem({ href, icon: Icon, label, active }: {
   )
 }
 
-export function Sidebar({ role }: SidebarProps) {
+export function Sidebar({ role, showDashboard }: SidebarProps) {
   const pathname = usePathname()
 
+  const baseNav = showDashboard ? NAV : NAV.filter(item => item.href !== '/dashboard')
   const items = role === 'ADMIN'
-    ? [...NAV, { href: '/admin', icon: Shield, label: 'Admin' }]
-    : NAV
+    ? [...baseNav, { href: '/admin', icon: Shield, label: 'Admin' }]
+    : baseNav
 
   return (
     <nav

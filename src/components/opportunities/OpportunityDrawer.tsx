@@ -316,6 +316,7 @@ export function OpportunityDrawer({
                   <Detail label="Close Date">{formatDate(opp.closeDate)}</Detail>
                   <Detail label="Priority">{opp.priority.charAt(0) + opp.priority.slice(1).toLowerCase()}</Detail>
                   {opp.territory && <Detail label="Territory">{opp.territory.name}</Detail>}
+                  {opp.createdAt && <Detail label="Created">{formatDate(opp.createdAt)}</Detail>}
                 </div>
 
                 {/* Concluded details panel */}
