@@ -258,7 +258,12 @@ export function OpportunityDrawer({
             <div style={{ padding: '16px 20px', borderBottom: '0.5px solid var(--color-border)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h2 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 600, color: 'var(--color-text-1)' }}>{opp.title}</h2>
-                <StageBadge stage={opp.stage} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <StageBadge stage={opp.stage} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                    setu-{opp.id}
+                  </span>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 {isOwner && !isConcluded && (
