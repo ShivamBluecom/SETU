@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SETU — User Guide | Bluecom Group</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F7F9FB;
+      --surface: #FFFFFF;
+      --sidebar-bg: #0D1A17;
+      --sidebar-text: #7A9E96;
+      --sidebar-active-text: #2DD4BF;
+      --sidebar-active-bg: #0A2420;
+      --sidebar-hover-bg: #111F1C;
+      --sidebar-border: #162420;
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-tertiary: #94A3B8;
+      --accent: #0D9488;
+      --accent-light: #CCFBF1;
+      --accent-mid: #14B8A6;
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+
+      --tip-bg: #F0FDFA;
+      --tip-border: #5EEAD4;
+      --tip-text: #134E4A;
+      --warning-bg: #FFFBEB;
+      --warning-border: #FCD34D;
+      --warning-text: #78350F;
+      --note-bg: #EFF6FF;
+      --note-border: #93C5FD;
+      --note-text: #1E3A5F;
+      --admin-bg: #FDF4FF;
+      --admin-border: #D8B4FE;
+      --admin-text: #4A1772;
+
+      --font-display: 'Familjen Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'Geist Mono', monospace;
+      --sidebar-width: 256px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    /* ─── LAYOUT ─── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      border-right: 1px solid var(--sidebar-border);
+    }
+    .sidebar::-webkit-scrollbar { width: 3px; }
+    .sidebar::-webkit-scrollbar-thumb { background: #1E3530; border-radius: 2px; }
+
+    .sidebar-header {
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid var(--sidebar-border);
+      position: relative;
+    }
+    .sidebar-logo {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--accent-mid);
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-logo-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #0D9488, #0891B2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .sidebar-subtitle {
+      font-size: 10px;
+      color: #3D5A52;
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+    .sidebar-doc-badge {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: #0A2420;
+      color: var(--accent-mid);
+      border: 1px solid #1E3530;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .sidebar-nav { padding: 12px 8px 24px; flex: 1; }
+
+    .nav-group-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: #2A4540;
+      padding: 12px 10px 4px;
+    }
+    .nav-group-label:first-child { padding-top: 4px; }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--sidebar-text);
+      font-size: 12.5px;
+      font-family: var(--font-body);
+      transition: background 0.1s, color 0.1s;
+      line-height: 1.35;
+      margin-bottom: 1px;
+    }
+    .nav-link:hover { background: var(--sidebar-hover-bg); color: #C1D7D2; }
+    .nav-link.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); }
+    .nav-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: #2A4540;
+      flex-shrink: 0;
+      transition: background 0.1s;
+    }
+    .nav-link.active .nav-dot, .nav-link:hover .nav-dot { background: var(--accent-mid); }
+
+    /* ─── MAIN ─── */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 48px 60px 96px;
+      max-width: calc(var(--sidebar-width) + 840px + 120px);
+    }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header {
+      margin-bottom: 52px;
+      padding-bottom: 36px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .page-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .page-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      max-width: 540px;
+      line-height: 1.65;
+    }
+
+    /* ─── SECTIONS ─── */
+    .section {
+      margin-bottom: 72px;
+      scroll-margin-top: 24px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .section-intro {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      font-size: 14.5px;
+      max-width: 660px;
+      line-height: 1.65;
+    }
+    .section-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .section-header-left { flex: 1; }
+
+    .subsection { margin-bottom: 36px; }
+    .subsection-title {
+      font-family: var(--font-display);
+      font-size: 16.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--border);
+    }
+    .subsection-intro {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    /* ─── APP LINK BUTTON ─── */
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      text-decoration: none;
+      background: var(--accent-light);
+      border: 1px solid #99F6E4;
+      padding: 5px 11px;
+      border-radius: 6px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      transition: background 0.12s, border-color 0.12s;
+      flex-shrink: 0;
+    }
+    .app-link:hover { background: #99F6E4; border-color: var(--accent-mid); }
+    .app-link::after { content: ' ↗'; font-size: 10px; }
+
+    /* ─── STEPS ─── */
+    .steps {
+      counter-reset: steps;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+    .step {
+      counter-increment: steps;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step::before {
+      content: counter(steps);
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--accent);
+      color: white;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content { flex: 1; font-size: 14.5px; color: var(--text-secondary); }
+    .step-content strong { font-weight: 600; color: var(--text-primary); }
+    .step-content a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .step-content a:hover { text-decoration: underline; }
+
+    /* ─── BULLET LIST ─── */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .bullet-list li {
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      font-size: 14.5px;
+      color: var(--text-secondary);
+    }
+    .bullet-list li::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 8px;
+    }
+    .bullet-list li strong { color: var(--text-primary); font-weight: 600; }
+    .bullet-list li a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .bullet-list li a:hover { text-decoration: underline; }
+
+    /* ─── CALLOUTS ─── */
+    .callout {
+      border-radius: 9px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+    }
+    .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .callout-content { font-size: 13.5px; line-height: 1.55; }
+    .callout-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      margin-bottom: 3px;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .callout.tip { background: var(--tip-bg); border: 1px solid var(--tip-border); color: var(--tip-text); }
+    .callout.tip .callout-title { color: #0F766E; }
+    .callout.warning { background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); }
+    .callout.warning .callout-title { color: #B45309; }
+    .callout.note { background: var(--note-bg); border: 1px solid var(--note-border); color: var(--note-text); }
+    .callout.note .callout-title { color: #1D4ED8; }
+    .callout.admin { background: var(--admin-bg); border: 1px solid var(--admin-border); color: var(--admin-text); }
+    .callout.admin .callout-title { color: #7E22CE; }
+
+    /* ─── ROLE GRID (6 roles, 3 columns) ─── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .role-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .role-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .role-badge.admin   { background: #F3E8FF; color: #7E22CE; border: 1px solid #D8B4FE; }
+    .role-badge.tm      { background: #DBEAFE; color: #1D4ED8; border: 1px solid #93C5FD; }
+    .role-badge.am      { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+    .role-badge.isr     { background: #CFFAFE; color: #0E7490; border: 1px solid #67E8F9; }
+    .role-badge.bu-head { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .role-badge.bu-mgr  { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
+
+    .role-card-name {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+    .role-scope {
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      margin-bottom: 12px;
+      letter-spacing: 0.02em;
+    }
+    .role-items { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .role-items li {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 7px;
+      align-items: flex-start;
+      line-height: 1.4;
+    }
+    .role-items li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; font-size: 12px; }
+    .role-items li.no::before { content: '✗'; color: #EF4444; }
+
+    /* ─── NAV PAGE LIST ─── */
+    .nav-pages {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .nav-page-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-page-row:last-child { border-bottom: none; }
+    .nav-page-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .nav-page-name {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .nav-page-desc { font-size: 12.5px; color: var(--text-secondary); margin-top: 1px; }
+    .nav-page-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .admin-tag {
+      font-size: 10px;
+      background: var(--admin-bg);
+      color: var(--admin-text);
+      border: 1px solid var(--admin-border);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 500;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+    }
+    .nav-go-link {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      text-decoration: none;
+      background: var(--accent-light);
+      border: 1px solid #99F6E4;
+      padding: 3px 9px;
+      border-radius: 5px;
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+    .nav-go-link:hover { background: #99F6E4; }
+
+    /* ─── TABLES ─── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .data-table th {
+      background: #F1F5F9;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table td strong { color: var(--text-primary); font-weight: 600; }
+    .bu-pill {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      background: #F1F5F9;
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--text-secondary);
+    }
+    .check { color: var(--accent); font-weight: 700; }
+    .cross { color: #EF4444; font-weight: 700; }
+
+    /* ─── TAB CARDS ─── */
+    .tab-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .tab-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .tab-label {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 600;
+      background: var(--accent-light);
+      color: #0F766E;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    /* ─── FIELD LIST ─── */
+    .field-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .field-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      padding: 7px 12px;
+      background: #F8FAFC;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .field-name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 154px;
+      font-size: 13px;
+    }
+    .field-desc { color: var(--text-secondary); font-size: 12.5px; flex: 1; }
+    .field-req {
+      font-size: 9px;
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FCA5A5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 700;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── STAGE FLOW ─── */
+    .stage-flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 14px 0;
+    }
+    .stage-pill {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .stage-pill.active { background: var(--accent-light); border-color: var(--accent-mid); color: #0F766E; }
+    .stage-pill.won { background: #DCFCE7; border-color: #86EFAC; color: #15803D; }
+    .stage-pill.lost { background: #FEE2E2; border-color: #FCA5A5; color: #B91C1C; }
+    .stage-arrow { color: #CBD5E1; font-size: 12px; }
+
+    /* ─── CODE ─── */
+    code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: #F1F5F9;
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #0D6B63;
+    }
+
+    /* ─── CONCLUSION CARDS ─── */
+    .conclusion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .conclusion-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .conclusion-header {
+      padding: 13px 18px;
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .conclusion-header.won { background: #DCFCE7; color: #15803D; border-bottom: 1px solid #86EFAC; }
+    .conclusion-header.lost { background: #FEE2E2; color: #B91C1C; border-bottom: 1px solid #FCA5A5; }
+    .conclusion-body { padding: 15px 18px; }
+    .conclusion-fields { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .conclusion-field {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .conclusion-field::before { content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+    /* ─── TIPS GRID ─── */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .tip-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+    }
+    .tip-icon { font-size: 19px; flex-shrink: 0; }
+    .tip-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
+    .tip-text strong {
+      color: var(--text-primary);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13.5px;
+      font-family: var(--font-display);
+    }
+
+    /* ─── PERMISSIONS TABLE ─── */
+    .perm-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .perm-table th {
+      background: #F1F5F9;
+      font-family: var(--font-display);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      padding: 9px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .perm-table th:not(:first-child) { text-align: center; }
+    .perm-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+    .perm-table tr:last-child td { border-bottom: none; }
+    .perm-table td:not(:first-child) { text-align: center; }
+    .perm-table td strong { color: var(--text-primary); font-weight: 600; }
+    .perm-table tr:hover td { background: #FAFBFC; }
+
+    /* ─── DIVIDER ─── */
+    .divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+    /* ─── FOOTER ─── */
+    .doc-footer {
+      margin-top: 52px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .doc-footer strong { color: var(--text-secondary); }
+
+    /* ─── BACK TO TOP ─── */
+    #btt {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--sidebar-bg);
+      color: #8FA89F;
+      border: 1px solid #1E3530;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11.5px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 200;
+    }
+    #btt.visible { opacity: 1; transform: translateY(0); }
+    #btt:hover { background: #111F1C; color: var(--sidebar-active-text); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1040px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 32px 24px 72px; }
+      .role-grid { grid-template-columns: 1fr 1fr; }
+      .tab-cards, .conclusion-grid, .tips-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .role-grid { grid-template-columns: 1fr; }
+      .main { padding: 24px 16px 64px; }
+    }
+    @media print {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      #btt { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, html { transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ─────────── SIDEBAR ─────────── -->
+  <nav class="sidebar" aria-label="Guide navigation">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">⚡</div>
+        SETU
+      </div>
+      <div class="sidebar-subtitle">Bluecom Group · CRM</div>
+      <div class="sidebar-doc-badge">📖 User Guide</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-group-label">Getting Started</div>
+      <a class="nav-link" href="#intro"><span class="nav-dot"></span>About SETU</a>
+      <a class="nav-link" href="#roles"><span class="nav-dot"></span>Understanding Your Role</a>
+      <a class="nav-link" href="#permissions"><span class="nav-dot"></span>Permissions Overview</a>
+      <a class="nav-link" href="#navigation"><span class="nav-dot"></span>App Navigation</a>
+
+      <div class="nav-group-label">Records</div>
+      <a class="nav-link" href="#companies"><span class="nav-dot"></span>Companies</a>
+      <a class="nav-link" href="#contacts"><span class="nav-dot"></span>Contacts</a>
+
+      <div class="nav-group-label">Opportunities</div>
+      <a class="nav-link" href="#opportunities"><span class="nav-dot"></span>What is an Opportunity</a>
+      <a class="nav-link" href="#creating"><span class="nav-dot"></span>Creating an Opportunity</a>
+      <a class="nav-link" href="#line-items"><span class="nav-dot"></span>Line Items &amp; BU Types</a>
+      <a class="nav-link" href="#sharing"><span class="nav-dot"></span>Sharing an Opportunity</a>
+
+      <div class="nav-group-label">Pipeline &amp; Closing</div>
+      <a class="nav-link" href="#pipeline"><span class="nav-dot"></span>Pipeline Board</a>
+      <a class="nav-link" href="#won-lost"><span class="nav-dot"></span>Marking Won or Lost</a>
+      <a class="nav-link" href="#concluded"><span class="nav-dot"></span>Concluded Page</a>
+      <a class="nav-link" href="#filters"><span class="nav-dot"></span>Filters &amp; Search</a>
+
+      <div class="nav-group-label">Admin</div>
+      <a class="nav-link" href="#deleting"><span class="nav-dot"></span>Deleting Records</a>
+
+      <div class="nav-group-label">Reference</div>
+      <a class="nav-link" href="#tips"><span class="nav-dot"></span>Tips &amp; Best Practices</a>
+    </div>
+  </nav>
+
+  <!-- ─────────── MAIN ─────────── -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-eyebrow">Bluecom Group · Internal Documentation</div>
+      <h1 class="page-title">SETU User Guide</h1>
+      <p class="page-desc">Everything you need to manage companies, contacts, and sales opportunities in SETU — written for the sales team. No technical knowledge required.</p>
+    </div>
+
+
+    <!-- ═══════════════════════════════════
+         ABOUT SETU
+    ═══════════════════════════════════ -->
+    <section class="section" id="intro">
+      <h2 class="section-title"><span class="section-icon">🏠</span>About SETU</h2>
+      <p class="section-intro">SETU is Bluecom's internal sales CRM. Use it to track the companies you work with, the contacts at those companies, and the deals you are pursuing — all in one place, visible to the right people on your team.</p>
+
+      <ul class="bullet-list">
+        <li><strong>Access:</strong> SETU runs in any web browser — no software to install. Open the link and sign in.</li>
+        <li><strong>Login:</strong> Use your Microsoft (Bluecom) account. You will be taken to the Opportunities page after signing in.</li>
+        <li><strong>What you see:</strong> The records visible to you depend on your assigned role. The next section explains what each role can access.</li>
+        <li><strong>Opportunity IDs:</strong> Every opportunity has a unique reference code starting with <code>setu-</code> (e.g. <code>setu-abc123</code>). Use it when discussing deals with teammates to avoid any confusion.</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         ROLES
+    ═══════════════════════════════════ -->
+    <section class="section" id="roles">
+      <h2 class="section-title"><span class="section-icon">👤</span>Understanding Your Role</h2>
+      <p class="section-intro">SETU has six roles. Your role controls which opportunities, companies, and contacts you can see, and what actions you are allowed to take. If you are not sure which role you have, ask your Admin.</p>
+
+      <div class="role-grid">
+
+        <!-- ADMIN -->
+        <div class="role-card">
+          <div class="role-card-top">
+            <span class="role-badge admin">Admin</span>
+          </div>
+          <div class="role-card-name">Administrator</div>
+          <div class="role-scope">Full system access</div>
+          <ul class="role-items">
+            <li>Sees all opportunities, companies, and contacts from every user</li>
+            <li>Can delete companies, contacts, and opportunities</li>
+            <li>Has access to the Admin panel for managing users and territories</li>
+            <li>Can do everything other roles can do</li>
+          </ul>
+        </div>
+
+        <!-- TERRITORY MANAGER -->
+        <div class="role-card">
+          <div class="role-card-top">
+            <span class="role-badge tm">TM</span>
+          </div>
+          <div class="role-card-name">Territory Manager</div>
+          <div class="role-scope">Territory-scoped visibility</div>
+          <ul class="role-items">
+            <li>Sees all opportunities within their assigned territory</li>
+            <li>Can create, edit, and manage their own companies and contacts</li>
+            <li>Pipeline shows only their own created opportunities</li>
+            <li class="no">Cannot delete companies, contacts, or opportunities</li>
+          </ul>
+        </div>
+
+        <!-- ISR -->
+        <div class="role-card">
+          <div class="role-card-top">
+            <span class="role-badge isr">ISR</span>
+          </div>
+          <div class="role-card-name">Inside Sales Representative</div>
+          <div class="role-scope">Own opportunities only</div>
+          <ul class="role-items">
+            <li>Sees only opportunities they personally created</li>
+            <li>Also sees opportunities where they are added as a POC (shared with them)</li>
+            <li>Can create and manage their own companies and contacts</li>
+            <li class="no">Cannot see other users' opportunities</li>
+            <li class="no">Cannot delete anything</li>
+          </ul>
+        </div>
+
+        <!-- ACCOUNT MANAGER -->
+        <div class="role-card">
+          <div class="role-card-top">
+            <span class="role-badge am">AM</span>
+          </div>
+          <div class="role-card-name">Account Manager</div>
+          <div class="role-scope">Own opportunities only</div>
+          <ul class="role-items">
+            <li>Sees only opportunities they personally created</li>
+            <li>Also sees opportunities where they are added as a POC (shared with them)</li>
+            <li>Can create and manage their own companies and contacts</li>
+            <li class="no">Cannot see other users' opportunities</li>
+            <li class="no">Cannot delete anything</li>
+          </ul>
+        </div>
+
+        <!-- BU HEAD -->
+        <div class="role-card">
+          <div class="role-card-top">
+            <span class="role-badge bu-head">BU Head</span>
+          </div>
+          <div class="role-card-name">Business Unit Head</div>
+          <div class="role-scope">Single BU — all territories</div>
+          <ul class="role-items">
+            <li>Sees all opportunities that contain line items belonging to their Business Unit</li>
+            <li>Visibility spans all territories — filtered by BU, not geography</li>
+            <li>Can review deal composition for their BU across the whole business</li>
+            <li class="no">Cannot delete anything</li>
+          </ul>
+        </div>
+
+        <!-- BU MANAGER -->
+        <div class="role-card">
+          <div class="role-card-top">
+            <span class="role-badge bu-mgr">BU Mgr</span>
+          </div>
+          <div class="role-card-name">BU Manager</div>
+          <div class="role-scope">Multiple BUs — all territories</div>
+          <ul class="role-items">
+            <li>Sees all opportunities containing line items from any of their assigned Business Units</li>
+            <li>Can manage visibility across multiple BUs at once</li>
+            <li>Visibility spans all territories — filtered by BU, not geography</li>
+            <li class="no">Cannot delete anything</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         PERMISSIONS OVERVIEW
+    ═══════════════════════════════════ -->
+    <section class="section" id="permissions">
+      <h2 class="section-title"><span class="section-icon">🔐</span>Permissions Overview</h2>
+      <p class="section-intro">A quick reference showing what each role can see and do across the main areas of SETU.</p>
+
+      <table class="perm-table">
+        <thead>
+          <tr>
+            <th>Action / Visibility</th>
+            <th>Admin</th>
+            <th>TM</th>
+            <th>ISR</th>
+            <th>AM</th>
+            <th>BU Head</th>
+            <th>BU Mgr</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>See all opportunities (system-wide)</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td><strong>See territory opportunities</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td><strong>See own created opportunities</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td>via BU</td>
+            <td>via BU</td>
+          </tr>
+          <tr>
+            <td><strong>See shared (POC) opportunities</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td><strong>See opps by BU line items</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td><strong>Create opportunities</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td><strong>Delete opportunities</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td><strong>Create &amp; edit companies</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td><strong>Delete companies &amp; contacts</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td><strong>Access Admin panel</strong></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         NAVIGATION
+    ═══════════════════════════════════ -->
+    <section class="section" id="navigation">
+      <h2 class="section-title"><span class="section-icon">🧭</span>App Navigation</h2>
+      <p class="section-intro">The left sidebar in SETU is how you move between pages. Here is what each page is for and a direct link to open it.</p>
+
+      <div class="nav-pages">
+        <div class="nav-page-row">
+          <div class="nav-page-icon">📋</div>
+          <div>
+            <div class="nav-page-name">Opportunities</div>
+            <div class="nav-page-desc">Full list of opportunities you have access to — with search and filters</div>
+          </div>
+          <div class="nav-page-right">
+            <a class="nav-go-link" href="/opportunities">Open →</a>
+          </div>
+        </div>
+        <div class="nav-page-row">
+          <div class="nav-page-icon">📊</div>
+          <div>
+            <div class="nav-page-name">Pipeline</div>
+            <div class="nav-page-desc">Kanban board showing your active opportunities organised by deal stage</div>
+          </div>
+          <div class="nav-page-right">
+            <a class="nav-go-link" href="/pipeline">Open →</a>
+          </div>
+        </div>
+        <div class="nav-page-row">
+          <div class="nav-page-icon">✅</div>
+          <div>
+            <div class="nav-page-name">Concluded</div>
+            <div class="nav-page-desc">Won and Lost opportunities — archive view, no editing</div>
+          </div>
+          <div class="nav-page-right">
+            <a class="nav-go-link" href="/concluded">Open →</a>
+          </div>
+        </div>
+        <div class="nav-page-row">
+          <div class="nav-page-icon">🏢</div>
+          <div>
+            <div class="nav-page-name">Companies</div>
+            <div class="nav-page-desc">Create and manage company records; bulk import via CSV</div>
+          </div>
+          <div class="nav-page-right">
+            <a class="nav-go-link" href="/companies">Open →</a>
+          </div>
+        </div>
+        <div class="nav-page-row">
+          <div class="nav-page-icon">👥</div>
+          <div>
+            <div class="nav-page-name">Contacts</div>
+            <div class="nav-page-desc">View contacts linked to your companies</div>
+          </div>
+          <div class="nav-page-right">
+            <a class="nav-go-link" href="/contacts">Open →</a>
+          </div>
+        </div>
+        <div class="nav-page-row">
+          <div class="nav-page-icon">🔔</div>
+          <div>
+            <div class="nav-page-name">Notifications</div>
+            <div class="nav-page-desc">System alerts and activity updates</div>
+          </div>
+          <div class="nav-page-right">
+            <a class="nav-go-link" href="/notifications">Open →</a>
+          </div>
+        </div>
+        <div class="nav-page-row">
+          <div class="nav-page-icon">⚙️</div>
+          <div>
+            <div class="nav-page-name">Admin</div>
+            <div class="nav-page-desc">Manage users, assign roles, and configure territories</div>
+          </div>
+          <div class="nav-page-right">
+            <span class="admin-tag">Admin only</span>
+            <a class="nav-go-link" href="/admin">Open →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         COMPANIES
+    ═══════════════════════════════════ -->
+    <section class="section" id="companies">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">🏢</span>Companies</h2>
+          <p class="section-intro">Company records are the foundation of SETU. You must create a company before you can create any opportunities against it.</p>
+        </div>
+        <a class="app-link" href="/companies">Companies page</a>
+      </div>
+
+      <!-- Two tabs -->
+      <div class="subsection">
+        <h3 class="subsection-title">Understanding the two tabs</h3>
+        <p class="subsection-intro">The Companies page is split into two tabs, each showing a different set of records.</p>
+
+        <div class="tab-cards">
+          <div class="tab-card">
+            <span class="tab-label">My Companies</span>
+            <ul class="bullet-list">
+              <li>Companies <strong>you personally created</strong></li>
+              <li>Full details are visible, including pipeline value</li>
+              <li>You can edit these records</li>
+            </ul>
+          </div>
+          <div class="tab-card">
+            <span class="tab-label">All Companies</span>
+            <ul class="bullet-list">
+              <li>Every company in the system, regardless of who created it</li>
+              <li>Basic info only: name, industry, type, and city</li>
+              <li>Pipeline value is <strong>not shown</strong> for other people's companies</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout note">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-content">
+            <div class="callout-title">Admins</div>
+            Admins see all companies with full details in both tabs.
+          </div>
+        </div>
+      </div>
+
+      <!-- Adding a company -->
+      <div class="subsection">
+        <h3 class="subsection-title">Adding a company</h3>
+        <p class="subsection-intro">Add a company whenever you start working with a new client or prospect. Once saved, you can link opportunities to it.</p>
+
+        <ol class="steps">
+          <li class="step"><div class="step-content">Go to <strong>Companies</strong> in the left sidebar — or <a href="/companies">click here to open it</a>.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Add Company</strong> in the top right corner.</div></li>
+          <li class="step"><div class="step-content">Fill in the required fields:
+            <br><br>
+            <ul class="field-list">
+              <li class="field-item"><span class="field-name">Company Name</span><span class="field-desc">The full legal or trading name</span><span class="field-req">Required</span></li>
+              <li class="field-item"><span class="field-name">Industry</span><span class="field-desc">The sector the company operates in</span><span class="field-req">Required</span></li>
+              <li class="field-item"><span class="field-name">Company Type</span><span class="field-desc">e.g. Private, Government, SME</span><span class="field-req">Required</span></li>
+              <li class="field-item"><span class="field-name">City</span><span class="field-desc">Where the company is based</span><span class="field-req">Required</span></li>
+            </ul>
+          </div></li>
+          <li class="step"><div class="step-content">Add any optional details such as website or description.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Save</strong>. The company appears under <strong>My Companies</strong>.</div></li>
+        </ol>
+      </div>
+
+      <!-- Bulk import -->
+      <div class="subsection">
+        <h3 class="subsection-title">Bulk uploading companies (CSV)</h3>
+        <p class="subsection-intro">If you have a list of companies ready in a spreadsheet, you can import them all at once instead of entering them one by one.</p>
+
+        <ol class="steps">
+          <li class="step"><div class="step-content">Go to <strong>Companies</strong> — <a href="/companies">open it here</a>.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Bulk Import</strong> in the top right corner (next to Add Company).</div></li>
+          <li class="step"><div class="step-content">Click <strong>Download Template</strong> to get a CSV file with the correct column headers already set up.</div></li>
+          <li class="step"><div class="step-content">Open the template in Excel or Google Sheets and fill in your company data row by row. <strong>Do not rename, remove, or reorder any of the column headers.</strong></div></li>
+          <li class="step"><div class="step-content">Save the file as <code>.csv</code>. In Excel: <strong>File → Save As → CSV (Comma delimited)</strong>.</div></li>
+          <li class="step"><div class="step-content">Back in SETU, click <strong>Upload File</strong> and select your saved file.</div></li>
+          <li class="step"><div class="step-content">Review any errors — rows with missing required fields will be flagged. Fix them in your spreadsheet and re-upload if needed.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Confirm</strong> to complete the import.</div></li>
+        </ol>
+
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <div class="callout-content">
+            <div class="callout-title">Required columns</div>
+            The template's required columns match the required fields when adding manually: <strong>Company Name, Industry, Company Type,</strong> and <strong>City.</strong> Every row must have all four, or that row will fail during import.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         CONTACTS
+    ═══════════════════════════════════ -->
+    <section class="section" id="contacts">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">👥</span>Contacts</h2>
+          <p class="section-intro">Contacts are the individual people at a company — the decision-makers and points of contact for a deal. Each contact is linked to a specific company record.</p>
+        </div>
+        <a class="app-link" href="/contacts">Contacts page</a>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Adding a contact to a company</h3>
+        <p class="subsection-intro">Contacts are added from inside the company record — not from the Contacts page directly.</p>
+
+        <ol class="steps">
+          <li class="step"><div class="step-content">Go to <strong>Companies</strong> and open the company you want to add the contact to.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Add Contact</strong> inside the company page.</div></li>
+          <li class="step"><div class="step-content">Fill in the contact's <strong>name</strong>, <strong>email address</strong>, <strong>phone number</strong>, and <strong>designation</strong>.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Save</strong>. The contact is now linked to that company and available to select when creating opportunities.</div></li>
+        </ol>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Who can see contacts?</h3>
+        <ul class="bullet-list">
+          <li>You can only see contacts belonging to companies <strong>you created</strong>. This protects the contact information of other users' clients.</li>
+          <li>Admins can see all contacts across every company in the system.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         WHAT IS AN OPPORTUNITY
+    ═══════════════════════════════════ -->
+    <section class="section" id="opportunities">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">💼</span>What is an Opportunity?</h2>
+          <p class="section-intro">An opportunity represents a potential deal with a company. Every deal you are working on should be logged as an opportunity so your team has an accurate view of the pipeline.</p>
+        </div>
+        <a class="app-link" href="/opportunities">Opportunities page</a>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Key information on every opportunity</h3>
+        <ul class="bullet-list">
+          <li><strong>Unique ID:</strong> Every opportunity gets a reference code starting with <code>setu-</code> (e.g. <code>setu-abc123</code>). It is shown in the header when you open the opportunity. Use it when discussing a deal with teammates to avoid any ambiguity.</li>
+          <li><strong>Status — Draft:</strong> The opportunity is incomplete. Only you (and Admins) can see it. Nothing is visible to the rest of the team.</li>
+          <li><strong>Status — Created:</strong> The opportunity is published and visible to your teammates based on their role and territory.</li>
+          <li><strong>Stage:</strong> Where the deal currently sits in the sales process — see the flow below.</li>
+          <li><strong>Value:</strong> The estimated deal size in INR. Update this whenever the scope changes.</li>
+          <li><strong>Created date:</strong> The date the opportunity was created, visible in the details panel when you open it.</li>
+        </ul>
+
+        <div style="margin-top: 20px;">
+          <p style="font-size: 10.5px; color: var(--text-tertiary); margin-bottom: 10px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em;">Deal Stages</p>
+          <div class="stage-flow">
+            <span class="stage-pill active">Prospecting</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill active">Qualified</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill active">Proposal</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill active">Negotiation</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill won">Won</span>
+            <span style="color: #CBD5E1; padding: 0 3px; font-size: 12px;">/</span>
+            <span class="stage-pill lost">Lost</span>
+          </div>
+        </div>
+
+        <div class="callout note" style="margin-top: 16px;">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-content">
+            Won and Lost opportunities move off the Pipeline automatically and appear in the <strong>Concluded</strong> page instead.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         CREATING AN OPPORTUNITY
+    ═══════════════════════════════════ -->
+    <section class="section" id="creating">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">➕</span>Creating an Opportunity</h2>
+          <p class="section-intro">Before creating an opportunity, make sure the company already exists in SETU. If not, <a href="/companies" style="color:var(--accent);font-weight:600;">add the company first</a> — you cannot link an opportunity to a company that hasn't been created yet.</p>
+        </div>
+        <a class="app-link" href="/opportunities/new">New Opportunity</a>
+      </div>
+
+      <ol class="steps">
+        <li class="step"><div class="step-content">Go to <strong>Opportunities</strong> and click <strong>New Opportunity</strong> in the top right — or go to <strong>Pipeline</strong> and click <strong>New Opportunity</strong> there.</div></li>
+        <li class="step"><div class="step-content">Fill in the required fields:
+          <br><br>
+          <ul class="field-list">
+            <li class="field-item"><span class="field-name">Title</span><span class="field-desc">A short, descriptive name for the deal</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Company</span><span class="field-desc">Search and select the company this deal is with</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Primary Contact</span><span class="field-desc">The key person at the company — select from that company's contacts</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Territory</span><span class="field-desc">The territory this deal belongs to</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Stage</span><span class="field-desc">Starting stage — usually Prospecting</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Priority</span><span class="field-desc">Low, Medium, or High</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Close Date</span><span class="field-desc">The expected date this deal will close</span><span class="field-req">Required</span></li>
+            <li class="field-item"><span class="field-name">Value</span><span class="field-desc">Estimated deal size in INR</span><span class="field-req">Required</span></li>
+          </ul>
+        </div></li>
+        <li class="step"><div class="step-content">Add <strong>Line Items</strong> — the individual products or services in the deal. See <a href="#line-items">Line Items</a> below for full details.</div></li>
+        <li class="step"><div class="step-content">Add <strong>Service Add-ons</strong> if applicable to the deal.</div></li>
+        <li class="step"><div class="step-content">Click <strong>Save as Draft</strong> to save your progress privately, or click <strong>Publish</strong> to make it live and visible to your team.</div></li>
+      </ol>
+
+      <div class="divider"></div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Saving as a draft</h3>
+        <p class="subsection-intro">Use a draft when you do not have all the information ready yet. Your progress is saved privately — no one else can see it until you publish.</p>
+        <ul class="bullet-list">
+          <li>Click <strong>Save as Draft</strong> at any point while filling in the form.</li>
+          <li>Drafts appear on the <a href="/pipeline">Pipeline</a> board with a <strong>Draft</strong> label on the card.</li>
+          <li>Click the draft card in Pipeline to reopen and continue editing at any time.</li>
+          <li>Drafts are visible <strong>only to you</strong> and to Admins. Other team members cannot see them until you publish.</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Publishing an opportunity</h3>
+        <p class="subsection-intro">Publishing makes the opportunity active and visible to your team. Do this when the deal is ready to be tracked by others.</p>
+        <ul class="bullet-list">
+          <li>Click <strong>Publish</strong> (or <strong>Create Opportunity</strong>) when the form is complete.</li>
+          <li>The opportunity status changes from <strong>Draft</strong> to <strong>Created</strong>.</li>
+          <li>It becomes visible to other users based on their role — for example, the Territory Manager for that territory will be able to see it.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         LINE ITEMS
+    ═══════════════════════════════════ -->
+    <section class="section" id="line-items">
+      <h2 class="section-title"><span class="section-icon">📦</span>Line Items &amp; Business Units</h2>
+      <p class="section-intro">Line items are the individual products and services that make up a deal. Each one is linked to a Business Unit — the internal team responsible for delivering that part. BU Heads and BU Managers use line items to gain visibility into deals relevant to their area.</p>
+
+      <div class="subsection">
+        <h3 class="subsection-title">The five Business Units</h3>
+        <p class="subsection-intro">Select the Business Unit that matches what you are selling in each line item.</p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Business Unit Name</th>
+              <th>BU Type</th>
+              <th>Who sees this?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Business Continuity &amp; Software</strong></td>
+              <td><span class="bu-pill">SSG</span></td>
+              <td>BU Head / Manager assigned to SSG</td>
+            </tr>
+            <tr>
+              <td><strong>Cloud Business</strong></td>
+              <td><span class="bu-pill">Cloud</span></td>
+              <td>BU Head / Manager assigned to Cloud</td>
+            </tr>
+            <tr>
+              <td><strong>Cybersecurity</strong></td>
+              <td><span class="bu-pill">ISS</span></td>
+              <td>BU Head / Manager assigned to ISS</td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure Services Group</strong></td>
+              <td><span class="bu-pill">ISG</span></td>
+              <td>BU Head / Manager assigned to ISG</td>
+            </tr>
+            <tr>
+              <td><strong>Networking</strong></td>
+              <td><span class="bu-pill">Networking &amp; AV</span></td>
+              <td>BU Head / Manager assigned to Networking &amp; AV</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout note" style="margin-top: 16px;">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-content">
+            <div class="callout-title">Why this matters</div>
+            If you add a line item from the <strong>Cybersecurity</strong> BU to your opportunity, the Cybersecurity BU Head will automatically be able to see that opportunity — even if they are in a different territory. This is how cross-functional visibility works in SETU.
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Adding a line item</h3>
+        <p class="subsection-intro">You add line items while filling in the opportunity form. You can add as many as needed, from different Business Units, in the same opportunity.</p>
+
+        <ol class="steps">
+          <li class="step"><div class="step-content">Inside the opportunity form, scroll to the <strong>Line Items</strong> section.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Add Line Item</strong>.</div></li>
+          <li class="step"><div class="step-content">Select the <strong>Business Unit (BU)</strong> from the dropdown that matches what you are selling.</div></li>
+          <li class="step"><div class="step-content">Select the <strong>BU Owner</strong> — the person within that BU responsible for this part of the deal.</div></li>
+          <li class="step"><div class="step-content">Fill in the details:
+            <br><br>
+            <ul class="field-list">
+              <li class="field-item"><span class="field-name">Description</span><span class="field-desc">What the product or service is</span></li>
+              <li class="field-item"><span class="field-name">Quantity</span><span class="field-desc">Number of units</span></li>
+              <li class="field-item"><span class="field-name">Unit Price</span><span class="field-desc">Price per unit in INR — the total is calculated automatically</span></li>
+              <li class="field-item"><span class="field-name">License Count</span><span class="field-desc">Number of licences — <em>applies to Business Continuity &amp; Software only</em></span></li>
+            </ul>
+          </div></li>
+          <li class="step"><div class="step-content">To add another line item from a different BU, click <strong>Add Line Item</strong> again and repeat.</div></li>
+        </ol>
+
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <div class="callout-content">
+            <div class="callout-title">Multi-BU deals</div>
+            A single opportunity can include line items from multiple Business Units. For example, a deal might include both Cloud Business and Cybersecurity components. Each BU's Head will independently gain visibility into the opportunity once you add their BU as a line item.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         SHARING
+    ═══════════════════════════════════ -->
+    <section class="section" id="sharing">
+      <h2 class="section-title"><span class="section-icon">🔗</span>Sharing an Opportunity</h2>
+      <p class="section-intro">Sometimes a colleague needs access to a deal that is outside their territory or role scope. You can share a specific opportunity with them by adding them as a Point of Contact (POC). This gives them visibility of just that one deal — nothing else changes.</p>
+
+      <ol class="steps">
+        <li class="step"><div class="step-content">Open the opportunity by clicking on it from the <a href="/opportunities">Opportunities</a> list or the <a href="/pipeline">Pipeline</a> board.</div></li>
+        <li class="step"><div class="step-content">In the drawer that opens on the right, look for the <strong>Share</strong> button at the top of the drawer header.</div></li>
+        <li class="step"><div class="step-content">Search for the team member you want to share with and select their name.</div></li>
+        <li class="step"><div class="step-content">They are now added as a POC and can see this specific opportunity, regardless of their territory or role.</div></li>
+      </ol>
+
+      <div class="callout note">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-content">
+          <div class="callout-title">POC visibility</div>
+          Being added as a POC gives access to <strong>one specific opportunity only</strong>. It does not expand the person's general access to other opportunities in that territory or BU.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         PIPELINE
+    ═══════════════════════════════════ -->
+    <section class="section" id="pipeline">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">📊</span>Pipeline Board</h2>
+          <p class="section-intro">The Pipeline page gives you a visual snapshot of all your active deals. Opportunities are shown as cards on a Kanban board, sorted into columns by stage — so you can see at a glance where every deal stands and what needs attention.</p>
+        </div>
+        <a class="app-link" href="/pipeline">Pipeline page</a>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">What you see on the Pipeline</h3>
+
+        <ul class="bullet-list">
+          <li>The board shows <strong>your own created opportunities</strong> — both drafts and published. Won and Lost deals are not shown here; they move to the Concluded page.</li>
+          <li>Each column header shows the <strong>stage name</strong>, the <strong>number of deals</strong> in that stage, and the <strong>total pipeline value</strong> for that column.</li>
+          <li>Cards with a <strong>Draft</strong> label are unpublished — click them to continue editing.</li>
+        </ul>
+
+        <div style="margin-top: 16px;">
+          <div class="stage-flow">
+            <span class="stage-pill active">Prospecting</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill active">Qualified</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill active">Proposal</span>
+            <span class="stage-arrow">→</span>
+            <span class="stage-pill active">Negotiation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Reordering cards within a stage</h3>
+        <p class="subsection-intro">You can drag and drop cards within a column to prioritise deals within the same stage.</p>
+
+        <ol class="steps">
+          <li class="step"><div class="step-content">Click and hold a card on the Pipeline board.</div></li>
+          <li class="step"><div class="step-content">Drag it up or down within the same column.</div></li>
+          <li class="step"><div class="step-content">Release to drop it in the new position. The order is saved automatically.</div></li>
+        </ol>
+
+        <div class="callout note">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-content">
+            Drag and drop only reorders cards <strong>within the same stage column</strong>. To move a deal to a different stage, use the opportunity drawer — see below.
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Changing the stage of a deal</h3>
+        <p class="subsection-intro">To move a deal from one stage to another, open it and change the stage in the details panel.</p>
+
+        <ol class="steps">
+          <li class="step"><div class="step-content">Click a card on the Pipeline board — or click an opportunity in the <a href="/opportunities">Opportunities list</a>.</div></li>
+          <li class="step"><div class="step-content">The opportunity drawer opens on the right side of the screen.</div></li>
+          <li class="step"><div class="step-content">Find the <strong>Stage</strong> dropdown in the details panel.</div></li>
+          <li class="step"><div class="step-content">Select the new stage.</div></li>
+          <li class="step"><div class="step-content">The card moves to the correct column on the board automatically. No need to save manually.</div></li>
+        </ol>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         WON / LOST
+    ═══════════════════════════════════ -->
+    <section class="section" id="won-lost">
+      <h2 class="section-title"><span class="section-icon">🏆</span>Marking an Opportunity as Won or Lost</h2>
+      <p class="section-intro">When a deal reaches its conclusion — whether it was won or lost — mark it accordingly. SETU will ask you to fill in a short closing form before the opportunity moves off the Pipeline and into the Concluded archive.</p>
+
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-content">
+          <div class="callout-title">Important — deals are locked after closing</div>
+          Once you mark an opportunity as Won or Lost and save the closing details, <strong>the record cannot be edited</strong>. Review everything carefully before confirming.
+        </div>
+      </div>
+
+      <div class="conclusion-grid">
+        <div class="conclusion-card">
+          <div class="conclusion-header won">🏆 &nbsp;Mark as Won</div>
+          <div class="conclusion-body">
+            <p class="subsection-intro">Open the opportunity drawer, change the Stage to <strong>Won</strong>. A form will appear asking for:</p>
+            <ul class="conclusion-fields">
+              <li class="conclusion-field"><strong>Closing Remarks</strong> — a brief summary of how the deal was closed</li>
+              <li class="conclusion-field"><strong>Final Deal Value</strong> — the actual signed value (may differ from the original estimate)</li>
+              <li class="conclusion-field"><strong>PO Number</strong> — the purchase order number from the client</li>
+              <li class="conclusion-field"><strong>Expected Delivery Date</strong></li>
+              <li class="conclusion-field"><strong>Key Decision Maker</strong> — the name of the person who approved the deal</li>
+              <li class="conclusion-field"><strong>Subscription Start / End Date</strong> (if applicable)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="conclusion-card">
+          <div class="conclusion-header lost">✗ &nbsp;Mark as Lost</div>
+          <div class="conclusion-body">
+            <p class="subsection-intro">Open the opportunity drawer, change the Stage to <strong>Lost</strong>. A form will appear asking for:</p>
+            <ul class="conclusion-fields">
+              <li class="conclusion-field"><strong>Loss Reason</strong> — why the deal was not won</li>
+              <li class="conclusion-field"><strong>Lost To</strong> — the competitor or alternative that won the deal instead</li>
+              <li class="conclusion-field"><strong>Could Be Revived?</strong> — Yes or No — helps identify future opportunities</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <p style="font-size: 14px; color: var(--text-secondary);">After saving, the deal disappears from your Pipeline and can be found in the <a href="/concluded" style="color:var(--accent);font-weight:600;">Concluded page</a>.</p>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         CONCLUDED
+    ═══════════════════════════════════ -->
+    <section class="section" id="concluded">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">✅</span>Concluded Page</h2>
+          <p class="section-intro">The Concluded page is the archive of all closed deals. Opportunities marked as Won or Lost live here. Records are view-only — they cannot be edited once concluded.</p>
+        </div>
+        <a class="app-link" href="/concluded">Concluded page</a>
+      </div>
+
+      <div class="tab-cards">
+        <div class="tab-card">
+          <span class="tab-label">Won tab</span>
+          <ul class="bullet-list">
+            <li>All deals that were won</li>
+            <li>Shows final deal value, PO number, expected delivery date, and key decision maker</li>
+            <li>Click any row to open the full deal details</li>
+          </ul>
+        </div>
+        <div class="tab-card">
+          <span class="tab-label">Lost tab</span>
+          <ul class="bullet-list">
+            <li>All deals that were not won</li>
+            <li>Shows loss reason, competitor/alternative, and whether the deal could be revived</li>
+            <li>Click any row to open the full deal details</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="subsection" style="margin-top: 24px;">
+        <h3 class="subsection-title">Searching and filtering</h3>
+        <ul class="bullet-list">
+          <li><strong>Search:</strong> The search bar covers opportunity title, company name, opportunity ID (<code>setu-xxx</code>), territory, owner name, loss reason, competitor name, PO number, and key decision maker — search across any of these at once.</li>
+          <li><strong>Date range:</strong> Use the calendar date inputs to filter by the date the opportunity was created. Or click a quarter button — <strong>Q1, Q2, Q3,</strong> or <strong>Q4</strong> — based on the April–March Indian fiscal year to jump to that quarter instantly.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         FILTERS & SEARCH
+    ═══════════════════════════════════ -->
+    <section class="section" id="filters">
+      <div class="section-header-row">
+        <div class="section-header-left">
+          <h2 class="section-title"><span class="section-icon">🔍</span>Filters &amp; Search</h2>
+          <p class="section-intro">The Opportunities page has several filters to help you find what you need quickly without scrolling through the full list.</p>
+        </div>
+        <a class="app-link" href="/opportunities">Opportunities page</a>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>How it works</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Search</strong></td>
+            <td>Type to search across opportunity title, company name, and opportunity ID (e.g. <code>setu-abc123</code>)</td>
+          </tr>
+          <tr>
+            <td><strong>Stage</strong></td>
+            <td>Filter by one or more stages — Prospecting, Qualified, Proposal, or Negotiation</td>
+          </tr>
+          <tr>
+            <td><strong>Territory</strong></td>
+            <td>Filter to show only opportunities belonging to a specific territory</td>
+          </tr>
+          <tr>
+            <td><strong>Date range</strong></td>
+            <td>Filter by creation date using the calendar inputs, or click a quarter preset — <strong>Q1, Q2, Q3, Q4</strong> — based on the April–March fiscal year</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 14px; font-size: 14px; color: var(--text-secondary);">Click <strong>Clear filters</strong> at any time to reset everything and see the full list again.</p>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         DELETING
+    ═══════════════════════════════════ -->
+    <section class="section" id="deleting">
+      <h2 class="section-title"><span class="section-icon">🗑️</span>Deleting Records</h2>
+      <p class="section-intro">Only Admins can delete records in SETU. Deletion is permanent — there is no undo once confirmed.</p>
+
+      <div class="callout admin">
+        <span class="callout-icon">🔐</span>
+        <div class="callout-content">
+          <div class="callout-title">Admin Only</div>
+          All other roles — Territory Manager, ISR, Account Manager, BU Head, and BU Manager — cannot delete companies, contacts, or opportunities. If you need a record removed, contact your Admin.
+        </div>
+      </div>
+
+      <div class="subsection" style="margin-top: 24px;">
+        <h3 class="subsection-title">Deleting an opportunity</h3>
+        <ol class="steps">
+          <li class="step"><div class="step-content">Open the opportunity from the <a href="/opportunities">Opportunities list</a> or the <a href="/pipeline">Pipeline board</a>.</div></li>
+          <li class="step"><div class="step-content">In the drawer that opens on the right, click the <strong>Delete</strong> (trash icon) button in the top right corner of the drawer.</div></li>
+          <li class="step"><div class="step-content">A confirmation dialog will appear — read it carefully before proceeding.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Confirm Delete</strong> to permanently remove the opportunity.</div></li>
+        </ol>
+
+        <div class="callout warning">
+          <span class="callout-icon">⚠️</span>
+          <div class="callout-content">
+            <div class="callout-title">Warning</div>
+            Deleting an opportunity is permanent and cannot be undone.
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Deleting a company</h3>
+        <ol class="steps">
+          <li class="step"><div class="step-content">Go to <a href="/companies">Companies</a> and open the company record.</div></li>
+          <li class="step"><div class="step-content">Click <strong>Delete Company</strong>.</div></li>
+          <li class="step"><div class="step-content">Confirm the deletion in the dialog that appears.</div></li>
+        </ol>
+
+        <div class="callout note">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-content">
+            <div class="callout-title">Two things to know before deleting a company</div>
+            1. A company <strong>cannot be deleted</strong> if it has active opportunities linked to it. You must delete those opportunities first.<br>
+            2. Deleting a company <strong>also deletes all its contacts</strong> permanently.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════
+         TIPS
+    ═══════════════════════════════════ -->
+    <section class="section" id="tips">
+      <h2 class="section-title"><span class="section-icon">⭐</span>Tips &amp; Best Practices</h2>
+      <p class="section-intro">A few habits that will make SETU work better for you and your team.</p>
+
+      <div class="tips-grid">
+        <div class="tip-card">
+          <div class="tip-icon">🏢</div>
+          <div class="tip-text">
+            <strong>Company first, opportunity second</strong>
+            You cannot create an opportunity without a company to link it to. If the company is not in SETU yet, <a href="/companies" style="color:var(--accent);">add it</a> before starting the opportunity form.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">📝</div>
+          <div class="tip-text">
+            <strong>Use drafts freely</strong>
+            If you don't have all the details yet, save as a draft. It stays private to you until you publish — there is no risk of sharing incomplete information with your team.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">🔑</div>
+          <div class="tip-text">
+            <strong>Use the setu-ID when discussing deals</strong>
+            The <code>setu-xxx</code> code is the unique reference for every opportunity. Share it with a colleague instead of describing the deal by name to avoid any confusion — especially when multiple deals involve the same company.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">💰</div>
+          <div class="tip-text">
+            <strong>Keep deal values accurate</strong>
+            If the scope of a deal changes, update the <strong>Value</strong> field. Your Pipeline page shows the total value per stage — keeping values current gives you and your manager an accurate picture of the pipeline.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">📦</div>
+          <div class="tip-text">
+            <strong>Choose BU line items carefully</strong>
+            Whichever Business Units you add as line items will determine which BU Heads and BU Managers gain visibility into that opportunity. Make sure the BU selections reflect the actual scope of the deal.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">✅</div>
+          <div class="tip-text">
+            <strong>Double-check before closing a deal</strong>
+            Once you mark an opportunity as Won or Lost, the record is locked and cannot be edited. Take a moment to review all the closing details before hitting save.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">🔗</div>
+          <div class="tip-text">
+            <strong>Share cross-territory deals</strong>
+            If a colleague needs to see a deal that's outside their territory or role scope, use the <strong>Share</strong> button inside the opportunity to add them as a POC. It only gives them access to that one deal.
+          </div>
+        </div>
+
+        <div class="tip-card">
+          <div class="tip-icon">📅</div>
+          <div class="tip-text">
+            <strong>Use quarter filters for reporting</strong>
+            On both the Opportunities and Concluded pages, the Q1–Q4 preset buttons (April–March fiscal year) let you instantly filter to a specific quarter. Useful for end-of-quarter reviews.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <div class="doc-footer">
+      <span>SETU User Guide · <strong>Bluecom Group</strong> · Internal Use Only</span>
+      <span>Last updated: July 2026</span>
+    </div>
+
+  </main>
+</div>
+
+<!-- Back to top -->
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
+
+<script>
+  // ── Scroll spy: highlight active sidebar link ──
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '0px 0px -60% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // ── Back to top button ──
+  const btt = document.getElementById('btt');
+  window.addEventListener('scroll', () => {
+    btt.classList.toggle('visible', window.scrollY > 300);
+  }, { passive: true });
+</script>
+
+</body>
+</html>
