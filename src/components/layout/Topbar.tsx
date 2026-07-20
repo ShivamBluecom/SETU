@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, LogOut } from 'lucide-react'
+import { Bell, BookOpen, LogOut } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { Avatar } from '@/components/ui/Avatar'
 import type { UserRole } from '@/types/enums'
@@ -242,6 +242,38 @@ export function Topbar({ user }: TopbarProps) {
       </div>
 
       <div style={{ flex: 1 }} />
+
+      {/* Docs */}
+      <a
+        href="/docs.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="User Guide"
+        style={{
+          color: 'var(--color-text-2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '36px',
+          height: '36px',
+          borderRadius: '10px',
+          border: '1px solid var(--color-border)',
+          background: 'var(--color-surface)',
+          textDecoration: 'none',
+          boxShadow: 'var(--shadow-xs)',
+          transition: 'box-shadow 150ms, background 150ms',
+        }}
+        onMouseEnter={e => {
+          ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'
+          ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'
+        }}
+        onMouseLeave={e => {
+          ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'
+          ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface)'
+        }}
+      >
+        <BookOpen size={15} strokeWidth={1.75} />
+      </a>
 
       {/* Notifications */}
       <Link
