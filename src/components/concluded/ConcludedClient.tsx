@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Search } from 'lucide-react'
 
 type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
@@ -61,6 +61,26 @@ const filterInputStyle: React.CSSProperties = {
   transition: 'border-color 150ms, box-shadow 150ms',
 }
 
+const paginationBtnStyle: React.CSSProperties = {
+  fontSize: '12px',
+  padding: '0 9px',
+  height: '30px',
+  borderRadius: '6px',
+  border: '1px solid var(--color-border)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text-2)',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  transition: 'background 120ms, color 120ms',
+}
+
+function pageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
+  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
+  return [1, '...', current - 1, current, current + 1, '...', total]
+}
+
 export function ConcludedClient({ opportunities }: ConcludedClientProps) {
   const [tab, setTab] = useState<'WON' | 'LOST'>('WON')
   const [search, setSearch] = useState('')
@@ -68,6 +88,8 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
   const [dateTo, setDateTo] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const won = useMemo(() => opportunities.filter(o => o.stage === 'WON'), [opportunities])
   const lost = useMemo(() => opportunities.filter(o => o.stage === 'LOST'), [opportunities])
@@ -94,6 +116,12 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
       return true
     })
   }, [current, search, dateFrom, dateTo])
+
+  // Reset page on filter or tab change
+  useEffect(() => { setCurrentPage(1) }, [search, dateFrom, dateTo, tab])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     padding: '6px 16px',
@@ -179,11 +207,9 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           })}
         </div>
 
-        {(search || dateFrom || dateTo) && (
-          <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
-            {filtered.length} of {current.length}
-          </span>
-        )}
+        <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
+          {(search || dateFrom || dateTo) ? `${filtered.length} of ${current.length}` : `${current.length} total`}
+        </span>
       </div>
 
       <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>
@@ -208,7 +234,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(opp => (
+              {paginated.map(opp => (
                 <tr
                   key={opp.id}
                   style={{ cursor: 'pointer' }}
@@ -261,7 +287,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(opp => (
+              {paginated.map(opp => (
                 <tr
                   key={opp.id}
                   style={{ cursor: 'pointer' }}
@@ -303,6 +329,60 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           </table>
         )}
       </div>
+
+      {/* Pagination footer */}
+      {filtered.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
+            Showing {Math.min((currentPage - 1) * pageSize + 1, filtered.length)}–{Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+          </span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.35 : 1 }}
+            >
+              ←
+            </button>
+            {pageNumbers(currentPage, totalPages).map((p, i) =>
+              p === '...'
+                ? <span key={`e${i}`} style={{ fontSize: '12px', color: 'var(--color-text-3)', padding: '0 4px' }}>…</span>
+                : <button
+                    key={p}
+                    onClick={() => setCurrentPage(p as number)}
+                    style={{
+                      ...paginationBtnStyle,
+                      background: currentPage === p ? 'var(--color-accent)' : 'var(--color-surface)',
+                      color: currentPage === p ? '#fff' : 'var(--color-text-2)',
+                      borderColor: currentPage === p ? 'var(--color-accent)' : 'var(--color-border)',
+                      fontWeight: currentPage === p ? 600 : 400,
+                    }}
+                  >
+                    {p}
+                  </button>
+            )}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.35 : 1 }}
+            >
+              →
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>Rows per page</span>
+            <select
+              value={pageSize}
+              onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
+              style={{ fontSize: '12px', padding: '4px 6px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-2)', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              {[10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
 
       <OpportunityDrawer
         opportunityId={selectedId}
