@@ -65,6 +65,26 @@ const filterInputStyle: React.CSSProperties = {
   transition: 'border-color 150ms, box-shadow 150ms',
 }
 
+const paginationBtnStyle: React.CSSProperties = {
+  fontSize: '12px',
+  padding: '0 9px',
+  height: '30px',
+  borderRadius: '6px',
+  border: '1px solid var(--color-border)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text-2)',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  transition: 'background 120ms, color 120ms',
+}
+
+function pageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
+  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
+  return [1, '...', current - 1, current, current + 1, '...', total]
+}
+
 export function OpportunitiesClient({ opportunities: initial, currentUserId }: OpportunitiesClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -90,6 +110,15 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   const [filterCompany, setFilterCompany] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  // Reset to page 1 whenever any filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo])
 
   // Unique values for dropdowns (derived from full list)
   const stages = useMemo(() => [...new Set(opps.map(o => o.stage))].sort(), [opps])
@@ -138,6 +167,9 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
       return true
     })
   }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const handleRowClick = (opp: Opp, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-delete]')) return
@@ -334,12 +366,12 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
         </button>
       </div>
 
-      {/* Result count when filtering */}
-      {hasFilters && (
-        <p style={{ margin: '0 0 10px', fontSize: '12px', color: 'var(--color-text-3)' }}>
-          {filtered.length} of {opps.length} opportunities
-        </p>
-      )}
+      {/* Result count */}
+      <p style={{ margin: '0 0 10px', fontSize: '12px', color: 'var(--color-text-3)' }}>
+        {hasFilters
+          ? `${filtered.length} of ${opps.length} opportunities`
+          : `${opps.length} opportunities`}
+      </p>
 
       <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>
         {filtered.length === 0 ? (
@@ -364,7 +396,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
               </tr>
             </thead>
             <tbody>
-              {filtered.map(opp => (
+              {paginated.map(opp => (
                 <tr
                   key={opp.id}
                   style={{ cursor: 'pointer' }}
@@ -452,6 +484,63 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           </table>
         )}
       </div>
+
+      {/* Pagination footer */}
+      {filtered.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          {/* Showing X–Y of Z */}
+          <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
+            Showing {Math.min((currentPage - 1) * pageSize + 1, filtered.length)}–{Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+          </span>
+
+          {/* Page buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.35 : 1 }}
+            >
+              ←
+            </button>
+            {pageNumbers(currentPage, totalPages).map((p, i) =>
+              p === '...'
+                ? <span key={`e${i}`} style={{ fontSize: '12px', color: 'var(--color-text-3)', padding: '0 4px' }}>…</span>
+                : <button
+                    key={p}
+                    onClick={() => setCurrentPage(p as number)}
+                    style={{
+                      ...paginationBtnStyle,
+                      background: currentPage === p ? 'var(--color-accent)' : 'var(--color-surface)',
+                      color: currentPage === p ? '#fff' : 'var(--color-text-2)',
+                      borderColor: currentPage === p ? 'var(--color-accent)' : 'var(--color-border)',
+                      fontWeight: currentPage === p ? 600 : 400,
+                    }}
+                  >
+                    {p}
+                  </button>
+            )}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.35 : 1 }}
+            >
+              →
+            </button>
+          </div>
+
+          {/* Rows per page */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>Rows per page</span>
+            <select
+              value={pageSize}
+              onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
+              style={{ fontSize: '12px', padding: '4px 6px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-2)', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              {[10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
 
       <OpportunityDrawer
         opportunityId={selectedId}
