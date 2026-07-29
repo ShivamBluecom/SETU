@@ -32,6 +32,7 @@ interface Opp {
   priority: string
   value: number | string
   createdAt: string | Date
+  closeDate: string | Date | null
   updatedAt: string | Date
   company: { id: string; name: string }
   createdBy: { id: string; name: string }
@@ -110,6 +111,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   const [filterCompany, setFilterCompany] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [dateField, setDateField] = useState<'closeDate' | 'createdAt'>('closeDate')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -118,7 +120,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   // Reset to page 1 whenever any filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo])
+  }, [search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo, dateField])
 
   // Unique values for dropdowns (derived from full list)
   const stages = useMemo(() => [...new Set(opps.map(o => o.stage))].sort(), [opps])
@@ -162,11 +164,12 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
       if (filterOwner && o.createdBy.id !== filterOwner) return false
       if (filterTerritory && o.territory?.id !== filterTerritory) return false
       if (filterCompany && o.company.id !== filterCompany) return false
-      if (dateFrom && new Date(o.createdAt) < new Date(dateFrom)) return false
-      if (dateTo && new Date(o.createdAt) > new Date(dateTo + 'T23:59:59')) return false
+      const dateVal = dateField === 'closeDate' ? o.closeDate : o.createdAt
+      if (dateFrom && (!dateVal || new Date(dateVal) < new Date(dateFrom))) return false
+      if (dateTo && (!dateVal || new Date(dateVal) > new Date(dateTo + 'T23:59:59'))) return false
       return true
     })
-  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo])
+  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo, dateField])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -288,6 +291,26 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
+
+        {/* Date field toggle */}
+        <div style={{ display: 'flex', gap: '2px', background: 'var(--color-surface-2)', borderRadius: '6px', padding: '2px' }}>
+          {(['closeDate', 'createdAt'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setDateField(f)}
+              style={{
+                fontSize: '11px', fontWeight: 500, padding: '0 9px', height: '28px',
+                borderRadius: '5px', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                background: dateField === f ? 'var(--color-surface)' : 'transparent',
+                color: dateField === f ? 'var(--color-text-1)' : 'var(--color-text-3)',
+                boxShadow: dateField === f ? 'var(--shadow-xs)' : 'none',
+                transition: 'all 120ms',
+              }}
+            >
+              {f === 'closeDate' ? 'Close date' : 'Created date'}
+            </button>
+          ))}
+        </div>
 
         {/* Date range */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

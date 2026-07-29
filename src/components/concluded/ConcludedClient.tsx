@@ -86,6 +86,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [dateField, setDateField] = useState<'closeDate' | 'createdAt'>('closeDate')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -111,14 +112,15 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           (o.keyDecisionMaker ?? '').toLowerCase().includes(q)
         if (!hit) return false
       }
-      if (dateFrom && new Date(o.createdAt) < new Date(dateFrom)) return false
-      if (dateTo && new Date(o.createdAt) > new Date(dateTo + 'T23:59:59')) return false
+      const dateVal = dateField === 'closeDate' ? o.closeDate : o.createdAt
+      if (dateFrom && (!dateVal || new Date(dateVal) < new Date(dateFrom))) return false
+      if (dateTo && (!dateVal || new Date(dateVal) > new Date(dateTo + 'T23:59:59'))) return false
       return true
     })
-  }, [current, search, dateFrom, dateTo])
+  }, [current, search, dateFrom, dateTo, dateField])
 
   // Reset page on filter or tab change
-  useEffect(() => { setCurrentPage(1) }, [search, dateFrom, dateTo, tab])
+  useEffect(() => { setCurrentPage(1) }, [search, dateFrom, dateTo, tab, dateField])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -164,6 +166,26 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
             placeholder="Search by title, ID, company, territory…"
             style={{ ...filterInputStyle, paddingLeft: '30px', width: '220px' }}
           />
+        </div>
+
+        {/* Date field toggle */}
+        <div style={{ display: 'flex', gap: '2px', background: 'var(--color-surface-2)', borderRadius: '6px', padding: '2px' }}>
+          {(['closeDate', 'createdAt'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setDateField(f)}
+              style={{
+                fontSize: '11px', fontWeight: 500, padding: '0 9px', height: '28px',
+                borderRadius: '5px', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                background: dateField === f ? 'var(--color-surface)' : 'transparent',
+                color: dateField === f ? 'var(--color-text-1)' : 'var(--color-text-3)',
+                boxShadow: dateField === f ? 'var(--shadow-xs)' : 'none',
+                transition: 'all 120ms',
+              }}
+            >
+              {f === 'closeDate' ? 'Close date' : 'Created date'}
+            </button>
+          ))}
         </div>
 
         {/* Date range */}
