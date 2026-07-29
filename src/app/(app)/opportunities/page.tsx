@@ -33,6 +33,7 @@ export default async function OpportunitiesPage() {
       priority: true,
       value: true,
       createdAt: true,
+      closeDate: true,
       updatedAt: true,
       company: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true } },
