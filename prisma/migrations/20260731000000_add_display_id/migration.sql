@@ -1,8 +1,10 @@
 -- Add displayId to opportunities table
 ALTER TABLE [opportunities] ADD [displayId] NVARCHAR(1000);
 
--- Add unique constraint on displayId
-ALTER TABLE [opportunities] ADD CONSTRAINT [opportunities_displayId_key] UNIQUE ([displayId]);
+-- Filtered unique index — NULL values are excluded so multiple NULLs are allowed
+CREATE UNIQUE INDEX [opportunities_displayId_key]
+ON [dbo].[opportunities] ([displayId])
+WHERE [displayId] IS NOT NULL;
 
 -- Create counters table
 CREATE TABLE [dbo].[counters] (
