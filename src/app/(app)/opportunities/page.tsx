@@ -27,6 +27,7 @@ export default async function OpportunitiesPage() {
     },
     select: {
       id: true,
+      displayId: true,
       title: true,
       status: true,
       stage: true,

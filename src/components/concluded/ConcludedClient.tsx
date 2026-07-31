@@ -23,6 +23,7 @@ import { formatINR, formatDate } from '@/lib/format'
 
 interface ConcludedOpp {
   id: string
+  displayId: string | null
   title: string
   stage: string
   value: number
@@ -104,7 +105,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           o.title.toLowerCase().includes(q) ||
           o.company.name.toLowerCase().includes(q) ||
           o.createdBy.name.toLowerCase().includes(q) ||
-          `setu-${o.id}`.toLowerCase().includes(q) ||
+          (o.displayId ?? '').toLowerCase().includes(q) ||
           (o.territory?.name ?? '').toLowerCase().includes(q) ||
           (o.lossReason ?? '').toLowerCase().includes(q) ||
           (o.lostTo ?? '').toLowerCase().includes(q) ||
@@ -264,7 +265,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
                 >
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
-                      setu-{opp.id}
+                      {opp.displayId ?? opp.id}
                     </span>
                   </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
@@ -317,7 +318,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
                 >
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
-                      setu-{opp.id}
+                      {opp.displayId ?? opp.id}
                     </span>
                   </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>

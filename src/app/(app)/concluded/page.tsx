@@ -21,6 +21,7 @@ export default async function ConcludedPage() {
     },
     select: {
       id: true,
+      displayId: true,
       title: true,
       stage: true,
       value: true,

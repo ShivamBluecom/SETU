@@ -19,6 +19,7 @@ function NewOpportunityFlow() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [opportunityId, setOpportunityId] = useState<string | null>(params.get('id'))
+  const [displayId, setDisplayId] = useState<string | null>(null)
 
   const advance = (toStep: number, id?: string) => {
     const nextId = id ?? opportunityId
@@ -35,14 +36,14 @@ function NewOpportunityFlow() {
         <h1 style={{ margin: '0 auto 0 0', fontSize: '18px', fontWeight: 600, color: 'var(--color-text-1)' }}>
           New Opportunity
         </h1>
-        {opportunityId && (
+        {(displayId || opportunityId) && (
           <span style={{
             fontSize: '11px', fontFamily: 'var(--font-mono)',
             color: 'var(--color-text-3)', background: 'var(--color-surface-2)',
             padding: '2px 8px', borderRadius: '4px', border: '0.5px solid var(--color-border)',
             flexShrink: 0,
           }}>
-            setu-{opportunityId}
+            {displayId ?? opportunityId}
           </span>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
@@ -73,6 +74,7 @@ function NewOpportunityFlow() {
       {step === 1 && (
         <Step1Details
           opportunityId={opportunityId}
+          onDisplayIdReady={(dId) => setDisplayId(dId)}
           onNext={(id) => advance(2, id)}
         />
       )}

@@ -11,6 +11,7 @@ import type { SessionUser } from '@/types/api'
 interface Step1DetailsProps {
   opportunityId: string | null
   onNext: (opportunityId: string) => void
+  onDisplayIdReady?: (displayId: string) => void
 }
 
 interface SelectOption { id: string; name: string; createdById?: string | null }
@@ -38,7 +39,7 @@ const errStyle: React.CSSProperties = {
   fontSize: '11px', color: 'var(--color-danger)', marginTop: '3px',
 }
 
-export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
+export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1DetailsProps) {
   const { data: session } = useSession()
   const user = session?.user as SessionUser | undefined
   const { showToast } = useToast()
@@ -106,6 +107,7 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
       const addl = (opp.additionalContacts ?? []).map((ac: { contactId: string }) => ac.contactId)
       setAdditionalContactIds(addl)
       setOriginalAdditionalContactIds(addl)
+      if (opp.displayId) onDisplayIdReady?.(opp.displayId)
     })
   }, [opportunityId])
 
@@ -167,6 +169,7 @@ export function Step1Details({ opportunityId, onNext }: Step1DetailsProps) {
 
       const data = await res.json()
       id = data.id
+      if (data.displayId) onDisplayIdReady?.(data.displayId)
 
       // Sync additional contacts
       const toAdd = additionalContactIds.filter(cId => !originalAdditionalContactIds.includes(cId))

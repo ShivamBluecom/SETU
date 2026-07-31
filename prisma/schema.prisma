@@ -139,6 +139,7 @@ model Contact {
 
 model Opportunity {
   id               String    @id @default(cuid())
+  displayId        String?   @unique
   title            String
   description      String?   @db.NVarChar(Max)
   value            Decimal   @default(0) @db.Decimal(18, 2)
@@ -276,4 +277,11 @@ model OemConfig {
   createdAt DateTime @default(now())
 
   @@map("oem_configs")
+}
+
+model Counter {
+  name  String @id
+  value Int    @default(0)
+
+  @@map("counters")
 }
