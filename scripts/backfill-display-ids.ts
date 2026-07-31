@@ -1,6 +1,25 @@
-import { PrismaClient } from '@prisma/client'
+import { config } from 'dotenv'
+import { resolve } from 'path'
 
-const prisma = new PrismaClient()
+// Load .env from project root
+config({ path: resolve(__dirname, '../.env') })
+
+import { PrismaClient } from '@prisma/client'
+import { PrismaMssql } from '@prisma/adapter-mssql'
+
+const url = (process.env.DATABASE_URL ?? '')
+  .replace(/;pool_timeout=\d+/gi, '')
+  .replace(/;connection_limit=\d+/gi, '')
+  .replace(/;loginTimeout=\d+/gi, '')
+  .replace(/;+$/, '')
+
+if (!url || !url.startsWith('sqlserver://')) {
+  console.error('DATABASE_URL is not set or invalid')
+  process.exit(1)
+}
+
+const adapter = new PrismaMssql(url)
+const prisma = new PrismaClient({ adapter } as any)
 
 async function main() {
   const opps = await prisma.opportunity.findMany({
@@ -14,9 +33,8 @@ async function main() {
     return
   }
 
-  // Find the current highest counter value so we don't collide with any existing displayIds
   const existingCounter = await prisma.counter.findUnique({ where: { name: 'opportunity' } })
-  let startFrom = (existingCounter?.value ?? 0) + 1
+  const startFrom = (existingCounter?.value ?? 0) + 1
 
   console.log(`Backfilling ${opps.length} opportunities starting from counter ${startFrom}...`)
 
@@ -28,7 +46,9 @@ async function main() {
       where: { id: opps[i].id },
       data: { displayId },
     })
-    if ((i + 1) % 50 === 0) console.log(`  ${i + 1}/${opps.length} done`)
+    if ((i + 1) % 50 === 0 || i === opps.length - 1) {
+      console.log(`  ${i + 1}/${opps.length} done`)
+    }
   }
 
   const finalValue = startFrom + opps.length - 1
@@ -38,7 +58,7 @@ async function main() {
     update: { value: finalValue },
   })
 
-  console.log(`Done. Counter set to ${finalValue}. Next opportunity will be BCG-OPP-XX-${(finalValue + 1).toString().padStart(6, '0')}.`)
+  console.log(`Done. Counter set to ${finalValue}. Next ID: BCG-OPP-${new Date().getFullYear().toString().slice(-2)}-${(finalValue + 1).toString().padStart(6, '0')}`)
 }
 
 main()
