@@ -261,7 +261,7 @@ export function OpportunityDrawer({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <StageBadge stage={opp.stage} />
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
-                    setu-{opp.id}
+                    {opp.displayId ?? opp.id}
                   </span>
                 </div>
               </div>

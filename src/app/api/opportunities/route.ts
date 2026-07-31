@@ -74,24 +74,35 @@ export async function POST(req: NextRequest) {
 
   const data = parsed.data
 
-  const opportunity = await prisma.opportunity.create({
-    data: {
-      title: data.title,
-      description: data.description,
-      closeDate: data.closeDate ? new Date(data.closeDate) : undefined,
-      stage: data.stage,
-      priority: data.priority,
-      status: data.status,
-      companyId: data.companyId,
-      primaryContactId: data.primaryContactId,
-      territoryId: data.territoryId,
-      createdById: user.id,
-    },
-    include: {
-      company: { select: { id: true, name: true, industry: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
-      territory: { select: { id: true, name: true } },
-    },
+  const opportunity = await prisma.$transaction(async (tx) => {
+    const counter = await tx.counter.upsert({
+      where: { name: 'opportunity' },
+      create: { name: 'opportunity', value: 1 },
+      update: { value: { increment: 1 } },
+    })
+    const year = new Date().getFullYear().toString().slice(-2)
+    const displayId = `BCG-OPP-${year}-${counter.value.toString().padStart(6, '0')}`
+
+    return tx.opportunity.create({
+      data: {
+        displayId,
+        title: data.title,
+        description: data.description,
+        closeDate: data.closeDate ? new Date(data.closeDate) : undefined,
+        stage: data.stage,
+        priority: data.priority,
+        status: data.status,
+        companyId: data.companyId,
+        primaryContactId: data.primaryContactId,
+        territoryId: data.territoryId,
+        createdById: user.id,
+      },
+      include: {
+        company: { select: { id: true, name: true, industry: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
+        territory: { select: { id: true, name: true } },
+      },
+    })
   })
 
   return NextResponse.json(opportunity, { status: 201 })

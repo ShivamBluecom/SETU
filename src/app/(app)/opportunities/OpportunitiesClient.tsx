@@ -26,6 +26,7 @@ function getQuarterDates(q: Quarter): { from: string; to: string } {
 
 interface Opp {
   id: string
+  displayId: string | null
   title: string
   status: string
   stage: string
@@ -157,7 +158,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           o.title.toLowerCase().includes(q) ||
           o.company.name.toLowerCase().includes(q) ||
           o.createdBy.name.toLowerCase().includes(q) ||
-          `setu-${o.id}`.toLowerCase().includes(q)
+          (o.displayId ?? '').toLowerCase().includes(q)
         if (!hit) return false
       }
       if (filterStage && o.stage !== filterStage) return false
@@ -427,7 +428,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
                 >
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-text-3)' }}>
-                      setu-{opp.id}
+                      {opp.displayId ?? opp.id}
                     </span>
                   </td>
                   <td style={{ fontWeight: 500, color: 'var(--color-text-1)', fontSize: '14px' }}>
