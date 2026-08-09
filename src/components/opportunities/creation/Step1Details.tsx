@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { Plus } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { InlineCompanyForm } from '@/components/opportunities/InlineCompanyForm'
@@ -37,6 +38,12 @@ const labelStyle: React.CSSProperties = {
 }
 const errStyle: React.CSSProperties = {
   fontSize: '11px', color: 'var(--color-danger)', marginTop: '3px',
+}
+const createNewBtnStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: '3px',
+  fontSize: '12px', fontWeight: 500, color: 'var(--color-accent-text)',
+  background: 'var(--color-accent-light)', border: 'none', borderRadius: '5px',
+  cursor: 'pointer', padding: '3px 8px',
 }
 
 export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1DetailsProps) {
@@ -224,9 +231,9 @@ export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1D
               <button
                 type="button"
                 onClick={() => setShowCompanyForm(true)}
-                style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                style={createNewBtnStyle}
               >
-                + Create new
+                <Plus size={12} /> Create new
               </button>
             )}
           </div>
@@ -249,9 +256,9 @@ export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1D
               <button
                 type="button"
                 onClick={() => setShowContactForm(true)}
-                style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                style={createNewBtnStyle}
               >
-                + Create new
+                <Plus size={12} /> Create new
               </button>
             )}
           </div>

@@ -19,6 +19,7 @@ interface WonForm {
   poNumber: string
   expectedDeliveryDate: string
   keyDecisionMaker: string
+  hasSubscription: boolean
   subscriptionStartDate: string
   subscriptionEndDate: string
 }
@@ -36,6 +37,7 @@ const BLANK_WON: WonForm = {
   poNumber: '',
   expectedDeliveryDate: '',
   keyDecisionMaker: '',
+  hasSubscription: true,
   subscriptionStartDate: '',
   subscriptionEndDate: '',
 }
@@ -65,6 +67,16 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setWonForm(f => ({ ...f, [k]: e.target.value }))
 
+  const toggleHasSubscription = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked
+    setWonForm(f => ({
+      ...f,
+      hasSubscription: checked,
+      subscriptionStartDate: checked ? f.subscriptionStartDate : '',
+      subscriptionEndDate: checked ? f.subscriptionEndDate : '',
+    }))
+  }
+
   const setLost = (k: keyof LostForm) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setLostForm(f => ({ ...f, [k]: e.target.value }))
@@ -93,8 +105,8 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
         body.poNumber = wonForm.poNumber.trim()
         body.expectedDeliveryDate = wonForm.expectedDeliveryDate
         body.keyDecisionMaker = wonForm.keyDecisionMaker.trim()
-        if (wonForm.subscriptionStartDate) body.subscriptionStartDate = wonForm.subscriptionStartDate
-        if (wonForm.subscriptionEndDate) body.subscriptionEndDate = wonForm.subscriptionEndDate
+        if (wonForm.hasSubscription && wonForm.subscriptionStartDate) body.subscriptionStartDate = wonForm.subscriptionStartDate
+        if (wonForm.hasSubscription && wonForm.subscriptionEndDate) body.subscriptionEndDate = wonForm.subscriptionEndDate
       } else {
         body.lossReason = lostForm.lossReason
         body.lostTo = lostForm.lostTo.trim()
@@ -188,23 +200,38 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
                 placeholder="Name / Title"
               />
             </div>
-            <div style={field}>
-              <label style={lbl}>Subscription Start Date</label>
-              <input
-                type="date"
-                value={wonForm.subscriptionStartDate}
-                onChange={setWon('subscriptionStartDate')}
-              />
-            </div>
-            <div style={field}>
-              <label style={lbl}>Subscription End Date</label>
-              <input
-                type="date"
-                value={wonForm.subscriptionEndDate}
-                onChange={setWon('subscriptionEndDate')}
-              />
-            </div>
           </div>
+
+          <div style={{ ...field, marginTop: '4px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 500, color: 'var(--color-text-2)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={wonForm.hasSubscription} onChange={toggleHasSubscription} />
+              This deal includes a subscription
+            </label>
+            <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--color-text-3)' }}>
+              Turn this off for one-time hardware purchases with no subscription term.
+            </p>
+          </div>
+
+          {wonForm.hasSubscription && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={field}>
+                <label style={lbl}>Subscription Start Date</label>
+                <input
+                  type="date"
+                  value={wonForm.subscriptionStartDate}
+                  onChange={setWon('subscriptionStartDate')}
+                />
+              </div>
+              <div style={field}>
+                <label style={lbl}>Subscription End Date</label>
+                <input
+                  type="date"
+                  value={wonForm.subscriptionEndDate}
+                  onChange={setWon('subscriptionEndDate')}
+                />
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div>

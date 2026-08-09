@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
+import { WebsiteInput } from '@/components/ui/WebsiteInput'
 import { useToast } from '@/contexts/ToastContext'
 import { useRouter } from 'next/navigation'
 
@@ -182,10 +183,9 @@ export function NewCompanyButton() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={labelStyle}>Website *</label>
-              <input
+              <WebsiteInput
                 value={form.website}
-                onChange={set('website')}
-                placeholder="https://acme.com"
+                onChange={v => { setErrors(prev => { const n = { ...prev }; delete n.website; return n }); setForm(f => ({ ...f, website: v })) }}
                 style={{ borderColor: borderColor('website') }}
               />
               {errMsg('website')}

@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { X } from 'lucide-react'
+import { WebsiteInput } from '@/components/ui/WebsiteInput'
 import { useToast } from '@/contexts/ToastContext'
 
 interface InlineCompanyFormProps {
   territories: { id: string; name: string }[]
-  onCreated: (company: { id: string; name: string }) => void
+  onCreated: (company: { id: string; name: string; createdById?: string | null }) => void
   onCancel: () => void
 }
 
@@ -63,7 +65,7 @@ export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCo
       if (res.ok) {
         const company = await res.json()
         showToast('Company created', 'success')
-        onCreated({ id: company.id, name: company.name })
+        onCreated({ id: company.id, name: company.name, createdById: company.createdById })
       } else if (res.status === 409) {
         const err = await res.json()
         setErrors({ name: err.error ?? 'Company already exists' })
@@ -89,8 +91,18 @@ export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCo
   const bc = (k: string): React.CSSProperties | undefined => errors[k] ? { borderColor: 'var(--color-danger)' } : undefined
 
   return (
-    <div style={{ marginTop: '8px', padding: '12px', background: 'var(--color-surface)', border: '0.5px solid var(--color-border)', borderRadius: '6px' }}>
-      <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: 600, color: 'var(--color-text-1)' }}>New Company</p>
+    <div style={{ marginTop: '8px', padding: '12px', background: 'var(--color-surface-2)', border: '0.5px solid var(--color-border)', borderLeft: '3px solid var(--color-accent)', borderRadius: '6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-1)' }}>New Company</p>
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Cancel new company"
+          style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--color-text-3)' }}
+        >
+          <X size={14} />
+        </button>
+      </div>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '10px' }}>
           <label style={lbl}>Company Name *</label>
@@ -134,7 +146,11 @@ export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCo
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>Website *</label>
-            <input value={form.website} onChange={set('website')} placeholder="https://acme.com" style={bc('website')} />
+            <WebsiteInput
+              value={form.website}
+              onChange={v => { setErrors(prev => { const n = { ...prev }; delete n.website; return n }); setForm(f => ({ ...f, website: v })) }}
+              style={bc('website')}
+            />
             {errMsg('website')}
           </div>
           <div>

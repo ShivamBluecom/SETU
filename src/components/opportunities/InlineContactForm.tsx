@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
 
 interface InlineContactFormProps {
@@ -62,8 +63,18 @@ export function InlineContactForm({ companyId, onCreated, onCancel }: InlineCont
   const lbl: React.CSSProperties = { display: 'block', fontSize: '11px', fontWeight: 500, color: 'var(--color-text-3)', marginBottom: '3px' }
 
   return (
-    <div style={{ marginTop: '8px', padding: '12px', background: 'var(--color-surface)', border: '0.5px solid var(--color-border)', borderRadius: '6px' }}>
-      <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: 600, color: 'var(--color-text-1)' }}>New Contact</p>
+    <div style={{ marginTop: '8px', padding: '12px', background: 'var(--color-surface-2)', border: '0.5px solid var(--color-border)', borderLeft: '3px solid var(--color-accent)', borderRadius: '6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-1)' }}>New Contact</p>
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Cancel new contact"
+          style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--color-text-3)' }}
+        >
+          <X size={14} />
+        </button>
+      </div>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '10px' }}>
           <label style={lbl}>Name *</label>
