@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
+import { Plus } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
 import { InlineCompanyForm } from '@/components/opportunities/InlineCompanyForm'
@@ -148,6 +149,12 @@ export function NewOpportunityModal({
   const fieldStyle = { marginBottom: '12px' }
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', color: 'var(--color-text-3)', marginBottom: '4px' }
   const lockedHint: React.CSSProperties = { fontSize: '11px', color: 'var(--color-text-3)', marginTop: '3px' }
+  const createNewBtnStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: '3px',
+    fontSize: '12px', fontWeight: 500, color: 'var(--color-accent-text)',
+    background: 'var(--color-accent-light)', border: 'none', borderRadius: '5px',
+    cursor: 'pointer', padding: '3px 8px',
+  }
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="New Opportunity" maxWidth="560px">
@@ -165,9 +172,9 @@ export function NewOpportunityModal({
                 <button
                   type="button"
                   onClick={() => setShowCompanyForm(true)}
-                  style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  style={createNewBtnStyle}
                 >
-                  + Create new
+                  <Plus size={12} /> Create new
                 </button>
               )}
             </div>
@@ -183,9 +190,9 @@ export function NewOpportunityModal({
                 <button
                   type="button"
                   onClick={() => setShowContactForm(true)}
-                  style={{ fontSize: '11px', color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  style={createNewBtnStyle}
                 >
-                  + Create new
+                  <Plus size={12} /> Create new
                 </button>
               )}
             </div>
