@@ -28,7 +28,7 @@ export default async function AdminPage() {
           select: { id: true, name: true, email: true },
           take: 1,
         },
-        _count: { select: { members: true } },
+        _count: { select: { members: true, lineItems: true, userBUAssignments: true } },
       },
       orderBy: { name: 'asc' },
     }),

@@ -41,6 +41,7 @@ export default async function ConcludedPage() {
       company: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true } },
       territory: { select: { id: true, name: true } },
+      lineItems: { select: { details: true, bu: { select: { buType: true } } } },
     },
     orderBy: { updatedAt: 'desc' },
   })

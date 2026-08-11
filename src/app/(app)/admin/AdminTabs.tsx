@@ -47,7 +47,7 @@ interface AdminTabsProps {
   businessUnits: Array<{
     id: string; name: string; buType?: string | null;
     members: { id: string; name: string; email: string }[];
-    _count: { members: number };
+    _count: { members: number; lineItems: number; userBUAssignments: number };
   }>
   territories: Array<{
     id: string; name: string;
@@ -130,15 +130,24 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
   const [editingTerritoryId, setEditingTerritoryId] = useState<string | null>(null)
   const [editingTerritoryName, setEditingTerritoryName] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [editingBUId, setEditingBUId] = useState<string | null>(null)
+  const [editingBUName, setEditingBUName] = useState('')
+  const [editingBUType, setEditingBUType] = useState('')
+  const [confirmDeleteBUId, setConfirmDeleteBUId] = useState<string | null>(null)
   const [newOemBuType, setNewOemBuType] = useState('ISG')
   const [newOemName, setNewOemName] = useState('')
   const editInputRef = useRef<HTMLInputElement>(null)
+  const buEditInputRef = useRef<HTMLInputElement>(null)
   const { showToast } = useToast()
   const router = useRouter()
 
   useEffect(() => {
     if (editingTerritoryId) editInputRef.current?.focus()
   }, [editingTerritoryId])
+
+  useEffect(() => {
+    if (editingBUId) buEditInputRef.current?.focus()
+  }, [editingBUId])
 
   const openOpps = opportunities.filter(o => o.stage !== 'WON' && o.stage !== 'LOST')
   const totalPipelineValue = openOpps.reduce((sum, o) => sum + Number(o.value), 0)
@@ -297,6 +306,43 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
       const err = await res.json()
       showToast(err.error ?? 'Failed to delete', 'error')
       setConfirmDeleteId(null)
+    }
+  }
+
+  const startEditBU = (id: string, currentName: string, currentType: string | null | undefined) => {
+    setEditingBUId(id)
+    setEditingBUName(currentName)
+    setEditingBUType(currentType ?? '')
+    setConfirmDeleteBUId(null)
+  }
+
+  const saveEditBU = async (id: string) => {
+    const name = editingBUName.trim()
+    if (!name) return
+    const res = await fetch(`/api/business-units/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, buType: editingBUType || null }),
+    })
+    if (res.ok) {
+      showToast('Business unit updated', 'success')
+      setEditingBUId(null)
+      router.refresh()
+    } else {
+      const err = await res.json()
+      showToast(err.error ?? 'Failed to update', 'error')
+    }
+  }
+
+  const deleteBU = async (id: string) => {
+    const res = await fetch(`/api/business-units/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      showToast('Business unit deleted', 'success')
+      setConfirmDeleteBUId(null)
+      router.refresh()
+    } else {
+      const err = await res.json()
+      showToast(err.error ?? 'Failed to delete', 'error')
+      setConfirmDeleteBUId(null)
     }
   }
 
@@ -506,34 +552,103 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
         <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
           <table>
             <thead>
-              <tr><th>Name</th><th>Type</th><th>BU Head</th><th>Total Members</th></tr>
+              <tr><th>Name</th><th>Type</th><th>BU Head</th><th>Total Members</th><th style={{ width: '80px' }}></th></tr>
             </thead>
             <tbody>
-              {businessUnits.map(bu => (
-                <tr key={bu.id}>
-                  <td style={{ fontWeight: 500, color: 'var(--color-text-1)' }}>{bu.name}</td>
-                  <td>
-                    {bu.buType ? (
-                      <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '3px', background: 'var(--color-surface-2)', color: 'var(--color-text-2)', border: '0.5px solid var(--color-border)' }}>
-                        {BU_TYPE_LABELS[bu.buType] ?? bu.buType}
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>—</span>
-                    )}
-                  </td>
-                  <td>
-                    {bu.members[0] ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Avatar name={bu.members[0].name} size="sm" />
-                        <span style={{ fontSize: '13px' }}>{bu.members[0].name}</span>
-                      </div>
-                    ) : <span style={{ color: 'var(--color-text-3)', fontSize: '13px' }}>No head assigned</span>}
-                  </td>
-                  <td>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{bu._count.members}</span>
-                  </td>
-                </tr>
-              ))}
+              {businessUnits.map(bu => {
+                const canDelete = bu._count.members === 0 && bu._count.lineItems === 0 && bu._count.userBUAssignments === 0
+                const isEditing = editingBUId === bu.id
+                const isConfirming = confirmDeleteBUId === bu.id
+                return (
+                  <tr key={bu.id}>
+                    <td style={{ fontWeight: 500, color: 'var(--color-text-1)' }}>
+                      {isEditing ? (
+                        <input
+                          ref={buEditInputRef}
+                          value={editingBUName}
+                          onChange={e => setEditingBUName(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') saveEditBU(bu.id)
+                            if (e.key === 'Escape') setEditingBUId(null)
+                          }}
+                          style={{ fontSize: '13px', padding: '4px 8px', maxWidth: '200px' }}
+                        />
+                      ) : isConfirming ? (
+                        <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>Delete &ldquo;{bu.name}&rdquo;?</span>
+                      ) : (
+                        bu.name
+                      )}
+                    </td>
+                    <td>
+                      {isEditing ? (
+                        <select value={editingBUType} onChange={e => setEditingBUType(e.target.value)} style={{ ...selectStyle, maxWidth: '160px' }}>
+                          <option value="">No type</option>
+                          {BU_TYPES.map(bt => <option key={bt} value={bt}>{BU_TYPE_LABELS[bt]}</option>)}
+                        </select>
+                      ) : bu.buType ? (
+                        <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '3px', background: 'var(--color-surface-2)', color: 'var(--color-text-2)', border: '0.5px solid var(--color-border)' }}>
+                          {BU_TYPE_LABELS[bu.buType] ?? bu.buType}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>—</span>
+                      )}
+                    </td>
+                    <td>
+                      {bu.members[0] ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Avatar name={bu.members[0].name} size="sm" />
+                          <span style={{ fontSize: '13px' }}>{bu.members[0].name}</span>
+                        </div>
+                      ) : <span style={{ color: 'var(--color-text-3)', fontSize: '13px' }}>No head assigned</span>}
+                    </td>
+                    <td>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{bu._count.members}</span>
+                    </td>
+                    <td>
+                      {isEditing ? (
+                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                          <button onClick={() => saveEditBU(bu.id)} title="Save" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: '2px' }}>
+                            <Check size={14} />
+                          </button>
+                          <button onClick={() => setEditingBUId(null)} title="Cancel" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '2px' }}>
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : isConfirming ? (
+                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                          <button onClick={() => deleteBU(bu.id)} style={{ fontSize: '12px', padding: '3px 10px', background: 'var(--color-danger)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            Yes
+                          </button>
+                          <button onClick={() => setConfirmDeleteBUId(null)} style={{ fontSize: '12px', padding: '3px 10px', background: 'var(--color-surface-2)', color: 'var(--color-text-2)', border: '0.5px solid var(--color-border)', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => startEditBU(bu.id, bu.name, bu.buType)}
+                            title="Edit"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '4px', borderRadius: '4px' }}
+                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-1)')}
+                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-3)')}
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            onClick={() => canDelete ? setConfirmDeleteBUId(bu.id) : showToast('Cannot delete: business unit has linked members, line items, or assignments', 'error')}
+                            title={canDelete ? 'Delete' : 'Cannot delete: has linked records'}
+                            style={{ background: 'none', border: 'none', cursor: canDelete ? 'pointer' : 'not-allowed', color: canDelete ? 'var(--color-text-3)' : 'var(--color-border)', padding: '4px', borderRadius: '4px' }}
+                            onMouseEnter={e => { if (canDelete) e.currentTarget.style.color = 'var(--color-danger)' }}
+                            onMouseLeave={e => { if (canDelete) e.currentTarget.style.color = 'var(--color-text-3)' }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

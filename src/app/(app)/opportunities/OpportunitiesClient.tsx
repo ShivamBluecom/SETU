@@ -38,6 +38,18 @@ interface Opp {
   company: { id: string; name: string }
   createdBy: { id: string; name: string }
   territory: { id: string; name: string } | null
+  lineItems: { details: string | null; bu: { buType: string | null } }[]
+}
+
+function getLineItemBUType(li: { details: string | null; bu: { buType: string | null } }): string | null {
+  if (li.bu.buType) return li.bu.buType
+  if (!li.details) return null
+  try {
+    const details = JSON.parse(li.details) as Record<string, unknown>
+    return typeof details.buType === 'string' ? details.buType : null
+  } catch {
+    return null
+  }
 }
 
 interface OpportunitiesClientProps {
@@ -52,6 +64,11 @@ const STAGE_LABELS: Record<string, string> = {
   NEGOTIATION: 'Negotiation',
   WON: 'Won',
   LOST: 'Lost',
+}
+
+const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'SSG', 'CLOUD']
+const BU_TYPE_LABELS: Record<string, string> = {
+  ISG: 'ISG', NETWORKING_AV: 'Networking & AV', ISS: 'ISS', SSG: 'SSG', CLOUD: 'Cloud',
 }
 
 const filterInputStyle: React.CSSProperties = {
@@ -110,6 +127,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   const [filterOwner, setFilterOwner] = useState('')
   const [filterTerritory, setFilterTerritory] = useState('')
   const [filterCompany, setFilterCompany] = useState('')
+  const [filterBU, setFilterBU] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [dateField, setDateField] = useState<'closeDate' | 'createdAt'>('closeDate')
@@ -121,7 +139,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
   // Reset to page 1 whenever any filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo, dateField])
+  }, [search, filterStage, filterOwner, filterTerritory, filterCompany, filterBU, dateFrom, dateTo, dateField])
 
   // Unique values for dropdowns (derived from full list)
   const stages = useMemo(() => [...new Set(opps.map(o => o.stage))].sort(), [opps])
@@ -138,7 +156,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     return opps.filter(o => !seen.has(o.company.id) && seen.add(o.company.id)).map(o => o.company)
   }, [opps])
 
-  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany || dateFrom || dateTo
+  const hasFilters = search || filterStage || filterOwner || filterTerritory || filterCompany || filterBU || dateFrom || dateTo
 
   const clearFilters = () => {
     setSearch('')
@@ -146,6 +164,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
     setFilterOwner('')
     setFilterTerritory('')
     setFilterCompany('')
+    setFilterBU('')
     setDateFrom('')
     setDateTo('')
   }
@@ -165,12 +184,13 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
       if (filterOwner && o.createdBy.id !== filterOwner) return false
       if (filterTerritory && o.territory?.id !== filterTerritory) return false
       if (filterCompany && o.company.id !== filterCompany) return false
+      if (filterBU && !o.lineItems.some(li => getLineItemBUType(li) === filterBU)) return false
       const dateVal = dateField === 'closeDate' ? o.closeDate : o.createdAt
       if (dateFrom && (!dateVal || new Date(dateVal) < new Date(dateFrom))) return false
       if (dateTo && (!dateVal || new Date(dateVal) > new Date(dateTo + 'T23:59:59'))) return false
       return true
     })
-  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, dateFrom, dateTo, dateField])
+  }, [opps, search, filterStage, filterOwner, filterTerritory, filterCompany, filterBU, dateFrom, dateTo, dateField])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -290,6 +310,18 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
           <option value="">All companies</option>
           {companies.map(c => (
             <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+
+        {/* BU */}
+        <select
+          value={filterBU}
+          onChange={e => setFilterBU(e.target.value)}
+          style={{ ...filterInputStyle, width: 'auto', paddingRight: '28px' }}
+        >
+          <option value="">All BUs</option>
+          {BU_TYPES.map(bt => (
+            <option key={bt} value={bt}>{BU_TYPE_LABELS[bt]}</option>
           ))}
         </select>
 
