@@ -39,6 +39,7 @@ export default async function OpportunitiesPage() {
       company: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true } },
       territory: { select: { id: true, name: true } },
+      lineItems: { select: { details: true, bu: { select: { buType: true } } } },
     },
     orderBy: { updatedAt: 'desc' },
   })

@@ -43,10 +43,27 @@ interface ConcludedOpp {
   company: { id: string; name: string }
   createdBy: { id: string; name: string }
   territory: { id: string; name: string } | null
+  lineItems: { details: string | null; bu: { buType: string | null } }[]
 }
 
 interface ConcludedClientProps {
   opportunities: ConcludedOpp[]
+}
+
+const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'SSG', 'CLOUD']
+const BU_TYPE_LABELS: Record<string, string> = {
+  ISG: 'ISG', NETWORKING_AV: 'Networking & AV', ISS: 'ISS', SSG: 'SSG', CLOUD: 'Cloud',
+}
+
+function getLineItemBUType(li: { details: string | null; bu: { buType: string | null } }): string | null {
+  if (li.bu.buType) return li.bu.buType
+  if (!li.details) return null
+  try {
+    const details = JSON.parse(li.details) as Record<string, unknown>
+    return typeof details.buType === 'string' ? details.buType : null
+  } catch {
+    return null
+  }
 }
 
 const filterInputStyle: React.CSSProperties = {
@@ -88,6 +105,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [dateField, setDateField] = useState<'closeDate' | 'createdAt'>('closeDate')
+  const [filterBU, setFilterBU] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -113,15 +131,16 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
           (o.keyDecisionMaker ?? '').toLowerCase().includes(q)
         if (!hit) return false
       }
+      if (filterBU && !o.lineItems.some(li => getLineItemBUType(li) === filterBU)) return false
       const dateVal = dateField === 'closeDate' ? o.closeDate : o.createdAt
       if (dateFrom && (!dateVal || new Date(dateVal) < new Date(dateFrom))) return false
       if (dateTo && (!dateVal || new Date(dateVal) > new Date(dateTo + 'T23:59:59'))) return false
       return true
     })
-  }, [current, search, dateFrom, dateTo, dateField])
+  }, [current, search, filterBU, dateFrom, dateTo, dateField])
 
   // Reset page on filter or tab change
-  useEffect(() => { setCurrentPage(1) }, [search, dateFrom, dateTo, tab, dateField])
+  useEffect(() => { setCurrentPage(1) }, [search, filterBU, dateFrom, dateTo, tab, dateField])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -168,6 +187,18 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
             style={{ ...filterInputStyle, paddingLeft: '30px', width: '220px' }}
           />
         </div>
+
+        {/* BU */}
+        <select
+          value={filterBU}
+          onChange={e => setFilterBU(e.target.value)}
+          style={{ ...filterInputStyle, width: 'auto', paddingRight: '28px' }}
+        >
+          <option value="">All BUs</option>
+          {BU_TYPES.map(bt => (
+            <option key={bt} value={bt}>{BU_TYPE_LABELS[bt]}</option>
+          ))}
+        </select>
 
         {/* Date field toggle */}
         <div style={{ display: 'flex', gap: '2px', background: 'var(--color-surface-2)', borderRadius: '6px', padding: '2px' }}>
@@ -231,7 +262,7 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
         </div>
 
         <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
-          {(search || dateFrom || dateTo) ? `${filtered.length} of ${current.length}` : `${current.length} total`}
+          {(search || filterBU || dateFrom || dateTo) ? `${filtered.length} of ${current.length}` : `${current.length} total`}
         </span>
       </div>
 
