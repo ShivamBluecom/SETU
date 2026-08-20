@@ -12,6 +12,7 @@ import type { SessionUser } from '@/types/api'
 interface Step1DetailsProps {
   opportunityId: string | null
   onNext: (opportunityId: string) => void
+  onSaved: (opportunityId: string) => void
   onDisplayIdReady?: (displayId: string) => void
 }
 
@@ -46,7 +47,7 @@ const createNewBtnStyle: React.CSSProperties = {
   cursor: 'pointer', padding: '3px 8px',
 }
 
-export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1DetailsProps) {
+export function Step1Details({ opportunityId, onNext, onSaved, onDisplayIdReady }: Step1DetailsProps) {
   const { data: session } = useSession()
   const user = session?.user as SessionUser | undefined
   const { showToast } = useToast()
@@ -88,11 +89,10 @@ export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1D
     }
   }, [user?.role, user?.territoryId, user?.territoryIds?.[0]])
 
-  // Load contacts when company changes
+  // Load contacts for the current company (selection reset happens where the
+  // company is actually changed by the user, not here — this also runs when
+  // a draft is loaded and restores companyId + primaryContactId together)
   useEffect(() => {
-    setForm(f => ({ ...f, primaryContactId: '' }))
-    setAdditionalContactIds([])
-    setOriginalAdditionalContactIds([])
     if (!form.companyId) { setContacts([]); return }
     fetch(`/api/contacts?companyId=${form.companyId}`).then(r => r.json()).then(d => setContacts(d))
   }, [form.companyId])
@@ -201,7 +201,10 @@ export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1D
 
       setOriginalAdditionalContactIds([...additionalContactIds])
       showToast('Draft saved', 'success')
-      if (advance && id) onNext(id)
+      if (id) {
+        if (advance) onNext(id)
+        else onSaved(id)
+      }
     } finally {
       setSaving(false)
     }
@@ -240,7 +243,9 @@ export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1D
           <SearchableSelect
             value={form.companyId}
             onChange={v => {
-              setForm(f => ({ ...f, companyId: v }))
+              setForm(f => ({ ...f, companyId: v, primaryContactId: '' }))
+              setAdditionalContactIds([])
+              setOriginalAdditionalContactIds([])
               if (errors.companyId) setErrors(prev => { const next = { ...prev }; delete next.companyId; return next })
             }}
             options={companyOptions}
@@ -280,7 +285,9 @@ export function Step1Details({ opportunityId, onNext, onDisplayIdReady }: Step1D
           territories={territories}
           onCreated={company => {
             setCompanies(prev => [...prev, company])
-            setForm(f => ({ ...f, companyId: company.id }))
+            setForm(f => ({ ...f, companyId: company.id, primaryContactId: '' }))
+            setAdditionalContactIds([])
+            setOriginalAdditionalContactIds([])
             setShowCompanyForm(false)
             if (errors.companyId) setErrors(prev => { const next = { ...prev }; delete next.companyId; return next })
           }}
