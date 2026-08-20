@@ -74,6 +74,34 @@ export function CompanyHeader({ company, canEdit, isAdmin }: CompanyHeaderProps)
           {company.website}
         </a>
       )}
+      {company.address && (
+        <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--color-text-3)' }}>
+          <span style={{ color: 'var(--color-text-2)', fontWeight: 500 }}>Address:</span> {company.address}
+        </p>
+      )}
+      {company.gstNumber && (
+        <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--color-text-3)' }}>
+          <span style={{ color: 'var(--color-text-2)', fontWeight: 500 }}>GST Number:</span> {company.gstNumber}
+        </p>
+      )}
+      {company.userCount != null && (
+        <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--color-text-3)' }}>
+          <span style={{ color: 'var(--color-text-2)', fontWeight: 500 }}>User Count:</span> {company.userCount}
+        </p>
+      )}
+      {company.linkedinUrl && (
+        <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--color-text-3)' }}>
+          <span style={{ color: 'var(--color-text-2)', fontWeight: 500 }}>LinkedIn:</span>{' '}
+          <a
+            href={company.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--color-accent)', textDecoration: 'none' }}
+          >
+            {company.linkedinUrl}
+          </a>
+        </p>
+      )}
       {company.createdBy && (
         <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-text-3)' }}>
           Created by <span style={{ color: 'var(--color-text-2)', fontWeight: 500 }}>{company.createdBy.name}</span>

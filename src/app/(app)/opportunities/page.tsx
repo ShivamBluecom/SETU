@@ -45,6 +45,7 @@ export default async function OpportunitiesPage() {
   })
 
   const opportunities = raw.map(o => ({ ...o, value: o.value.toNumber() }))
+  const isAdmin = user.role === 'ADMIN'
 
   return (
     <div>
@@ -54,7 +55,7 @@ export default async function OpportunitiesPage() {
         </h1>
       </div>
       <Suspense fallback={null}>
-        <OpportunitiesClient opportunities={opportunities} currentUserId={user.id} />
+        <OpportunitiesClient opportunities={opportunities} currentUserId={user.id} isAdmin={isAdmin} />
       </Suspense>
     </div>
   )

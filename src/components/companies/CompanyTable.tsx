@@ -6,10 +6,16 @@ import { Search, X } from 'lucide-react'
 import type { CompanyWithCounts } from '@/types/api'
 import { formatINR } from '@/lib/format'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { DownloadCsvButton } from '@/components/ui/DownloadCsvButton'
+
+function toDateStr(d: string | Date | null | undefined): string {
+  return d ? new Date(d).toISOString().split('T')[0] : ''
+}
 
 interface CompanyTableProps {
   companies: CompanyWithCounts[]
   currentUserId: string
+  isAdmin?: boolean
 }
 
 const filterInputStyle: React.CSSProperties = {
@@ -25,7 +31,7 @@ const filterInputStyle: React.CSSProperties = {
   transition: 'border-color 150ms, box-shadow 150ms',
 }
 
-export function CompanyTable({ companies, currentUserId }: CompanyTableProps) {
+export function CompanyTable({ companies, currentUserId, isAdmin }: CompanyTableProps) {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [ownerFilter, setOwnerFilter] = useState<'mine' | 'all'>('mine')
@@ -55,6 +61,25 @@ export function CompanyTable({ companies, currentUserId }: CompanyTableProps) {
   }, [companies, ownerFilter, currentUserId, ownerNameFilter, territoryFilter, search])
 
   const hasExtraFilters = ownerNameFilter.trim() !== '' || territoryFilter !== ''
+
+  const exportOptions = useMemo(() => {
+    const visibleHeaders = ['Company', 'Industry', 'Territory', 'Open Opps', ownerFilter === 'mine' ? 'Pipeline Value' : 'Created By']
+    const toVisibleRow = (c: CompanyWithCounts): (string | number)[] => [
+      c.name, c.industry ?? '', c.territory?.name ?? '', c.openOpportunities ?? c._count.opportunities,
+      ownerFilter === 'mine' ? Number(c.pipelineValue ?? 0) : (c.createdBy?.name ?? ''),
+    ]
+    const allHeaders = ['Company', 'Industry', 'Territory', 'Address', 'GST Number', 'User Count', 'Website', 'LinkedIn URL', 'Open Opps', 'Pipeline Value', 'Created By', 'Created Date']
+    const toAllRow = (c: CompanyWithCounts): (string | number)[] => [
+      c.name, c.industry ?? '', c.territory?.name ?? '', c.address ?? '', c.gstNumber ?? '',
+      c.userCount ?? '', c.website ?? '', c.linkedinUrl ?? '',
+      c.openOpportunities ?? c._count.opportunities, Number(c.pipelineValue ?? 0),
+      c.createdBy?.name ?? '', toDateStr(c.createdAt),
+    ]
+    return [
+      { label: 'Visible columns', filename: 'companies.csv', headers: visibleHeaders, rows: filtered.map(toVisibleRow) },
+      { label: 'All details', filename: 'companies-full.csv', headers: allHeaders, rows: filtered.map(toAllRow) },
+    ]
+  }, [filtered, ownerFilter])
 
   if (companies.length === 0) {
     return <EmptyState message="Companies will appear here." />
@@ -151,6 +176,10 @@ export function CompanyTable({ companies, currentUserId }: CompanyTableProps) {
             {filtered.length} of {companies.length} companies
           </span>
         )}
+
+        <div style={{ flex: 1 }} />
+
+        {isAdmin && <DownloadCsvButton options={exportOptions} />}
       </div>
 
       <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>
