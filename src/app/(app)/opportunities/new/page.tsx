@@ -76,6 +76,7 @@ function NewOpportunityFlow() {
           opportunityId={opportunityId}
           onDisplayIdReady={(dId) => setDisplayId(dId)}
           onNext={(id) => advance(2, id)}
+          onSaved={(id) => advance(1, id)}
         />
       )}
       {step === 2 && opportunityId && (
