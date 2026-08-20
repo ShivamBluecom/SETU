@@ -19,7 +19,12 @@ function getQuarterDates(q: Quarter): { from: string; to: string } {
 import { Avatar } from '@/components/ui/Avatar'
 import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { DownloadCsvButton } from '@/components/ui/DownloadCsvButton'
 import { formatINR, formatDate } from '@/lib/format'
+
+function toDateStr(d: string | Date | null): string {
+  return d ? new Date(d).toISOString().split('T')[0] : ''
+}
 
 interface ConcludedOpp {
   id: string
@@ -48,6 +53,7 @@ interface ConcludedOpp {
 
 interface ConcludedClientProps {
   opportunities: ConcludedOpp[]
+  isAdmin?: boolean
 }
 
 const BU_TYPES = ['ISG', 'NETWORKING_AV', 'ISS', 'SSG', 'CLOUD']
@@ -99,7 +105,7 @@ function pageNumbers(current: number, total: number): (number | '...')[] {
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-export function ConcludedClient({ opportunities }: ConcludedClientProps) {
+export function ConcludedClient({ opportunities, isAdmin }: ConcludedClientProps) {
   const [tab, setTab] = useState<'WON' | 'LOST'>('WON')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
@@ -144,6 +150,41 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const exportOptions = useMemo(() => {
+    if (tab === 'WON') {
+      const visibleHeaders = ['Opp ID', 'Title', 'Company', 'Final Value', 'PO Number', 'Expected Delivery', 'Key Decision Maker', 'Territory', 'Owner', 'Date Closed']
+      const toVisibleRow = (o: ConcludedOpp): (string | number)[] => [
+        o.displayId ?? o.id, o.title, o.company.name,
+        o.finalDealValue != null ? Number(o.finalDealValue) : '',
+        o.poNumber ?? '', toDateStr(o.expectedDeliveryDate), o.keyDecisionMaker ?? '',
+        o.territory?.name ?? '', o.createdBy.name, toDateStr(o.updatedAt),
+      ]
+      const allHeaders = [...visibleHeaders, 'Closing Comment', 'Subscription Start', 'Subscription End', 'Created Date', 'Original Value']
+      const toAllRow = (o: ConcludedOpp): (string | number)[] => [
+        ...toVisibleRow(o), o.closingComment ?? '', toDateStr(o.subscriptionStartDate),
+        toDateStr(o.subscriptionEndDate), toDateStr(o.createdAt), Number(o.value),
+      ]
+      return [
+        { label: 'Visible columns', filename: 'concluded-won.csv', headers: visibleHeaders, rows: filtered.map(toVisibleRow) },
+        { label: 'All details', filename: 'concluded-won-full.csv', headers: allHeaders, rows: filtered.map(toAllRow) },
+      ]
+    }
+    const visibleHeaders = ['Opp ID', 'Title', 'Company', 'Loss Reason', 'Lost To', 'Could Revive', 'Territory', 'Owner', 'Date Closed']
+    const toVisibleRow = (o: ConcludedOpp): (string | number)[] => [
+      o.displayId ?? o.id, o.title, o.company.name, o.lossReason ?? '', o.lostTo ?? '',
+      o.couldBeRevived == null ? '' : (o.couldBeRevived ? 'Yes' : 'No'),
+      o.territory?.name ?? '', o.createdBy.name, toDateStr(o.updatedAt),
+    ]
+    const allHeaders = [...visibleHeaders, 'Closing Comment', 'Created Date', 'Original Value']
+    const toAllRow = (o: ConcludedOpp): (string | number)[] => [
+      ...toVisibleRow(o), o.closingComment ?? '', toDateStr(o.createdAt), Number(o.value),
+    ]
+    return [
+      { label: 'Visible columns', filename: 'concluded-lost.csv', headers: visibleHeaders, rows: filtered.map(toVisibleRow) },
+      { label: 'All details', filename: 'concluded-lost-full.csv', headers: allHeaders, rows: filtered.map(toAllRow) },
+    ]
+  }, [filtered, tab])
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     padding: '6px 16px',
@@ -264,6 +305,10 @@ export function ConcludedClient({ opportunities }: ConcludedClientProps) {
         <span style={{ fontSize: '12px', color: 'var(--color-text-3)' }}>
           {(search || filterBU || dateFrom || dateTo) ? `${filtered.length} of ${current.length}` : `${current.length} total`}
         </span>
+
+        <div style={{ flex: 1 }} />
+
+        {isAdmin && <DownloadCsvButton options={exportOptions} />}
       </div>
 
       <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>

@@ -7,6 +7,7 @@ import type { Contact, Company } from '@prisma/client'
 import { ContactRow } from './ContactRow'
 import { EditContactModal } from './EditContactModal'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { DownloadCsvButton } from '@/components/ui/DownloadCsvButton'
 
 type ContactWithCompany = Contact & { company: Pick<Company, 'id' | 'name'> }
 
@@ -14,6 +15,7 @@ interface ContactTableProps {
   contacts: ContactWithCompany[]
   showCompany?: boolean
   onRefresh?: () => void
+  isAdmin?: boolean
 }
 
 const filterInputStyle: React.CSSProperties = {
@@ -30,7 +32,7 @@ const filterInputStyle: React.CSSProperties = {
   width: 'auto',
 }
 
-export function ContactTable({ contacts, showCompany = true, onRefresh }: ContactTableProps) {
+export function ContactTable({ contacts, showCompany = true, onRefresh, isAdmin }: ContactTableProps) {
   const router = useRouter()
   const refresh = onRefresh ?? (() => router.refresh())
   const [editingContact, setEditingContact] = useState<ContactWithCompany | null>(null)
@@ -63,6 +65,14 @@ export function ContactTable({ contacts, showCompany = true, onRefresh }: Contac
       return true
     })
   }, [contacts, search, filterCompany])
+
+  const exportOptions = useMemo(() => {
+    const headers = ['Name', 'Designation', ...(showCompany ? ['Company'] : []), 'Email', 'Phone']
+    const toRow = (c: ContactWithCompany): (string | number)[] => [
+      c.name, c.designation ?? '', ...(showCompany ? [c.company.name] : []), c.email ?? '', c.phone ?? '',
+    ]
+    return [{ label: 'Visible columns', filename: 'contacts.csv', headers, rows: filtered.map(toRow) }]
+  }, [filtered, showCompany])
 
   if (contacts.length === 0) {
     return <EmptyState message="Contacts will appear here." />
@@ -133,6 +143,10 @@ export function ContactTable({ contacts, showCompany = true, onRefresh }: Contac
             {filtered.length} of {contacts.length} contacts
           </span>
         )}
+
+        <div style={{ flex: 1 }} />
+
+        {isAdmin && <DownloadCsvButton options={exportOptions} />}
       </div>
 
       <div className="card-3d" style={{ overflow: 'hidden', padding: 0 }}>

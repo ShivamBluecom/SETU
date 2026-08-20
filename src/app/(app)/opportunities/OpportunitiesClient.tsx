@@ -8,7 +8,12 @@ import { PriorityDot } from '@/components/ui/PriorityDot'
 import { Avatar } from '@/components/ui/Avatar'
 import { OpportunityDrawer } from '@/components/opportunities/OpportunityDrawer'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { DownloadCsvButton } from '@/components/ui/DownloadCsvButton'
 import { formatINR, formatDate } from '@/lib/format'
+
+function toDateStr(d: string | Date | null): string {
+  return d ? new Date(d).toISOString().split('T')[0] : ''
+}
 
 type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 
@@ -55,6 +60,7 @@ function getLineItemBUType(li: { details: string | null; bu: { buType: string | 
 interface OpportunitiesClientProps {
   opportunities: Opp[]
   currentUserId: string
+  isAdmin?: boolean
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -104,7 +110,7 @@ function pageNumbers(current: number, total: number): (number | '...')[] {
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-export function OpportunitiesClient({ opportunities: initial, currentUserId }: OpportunitiesClientProps) {
+export function OpportunitiesClient({ opportunities: initial, currentUserId, isAdmin }: OpportunitiesClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [opps, setOpps] = useState<Opp[]>(initial)
@@ -194,6 +200,21 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const exportOptions = useMemo(() => {
+    const visibleHeaders = ['Opp ID', 'Title', 'Company', 'Status', 'Stage', 'Priority', 'Created By', 'Territory', 'Value', 'Updated']
+    const toVisibleRow = (o: Opp): (string | number)[] => [
+      o.displayId ?? o.id, o.title, o.company.name, o.status,
+      STAGE_LABELS[o.stage] ?? o.stage, o.priority, o.createdBy.name,
+      o.territory?.name ?? '', Number(o.value), toDateStr(o.updatedAt),
+    ]
+    const allHeaders = [...visibleHeaders, 'Created Date', 'Close Date']
+    const toAllRow = (o: Opp): (string | number)[] => [...toVisibleRow(o), toDateStr(o.createdAt), toDateStr(o.closeDate)]
+    return [
+      { label: 'Visible columns', filename: 'opportunities.csv', headers: visibleHeaders, rows: filtered.map(toVisibleRow) },
+      { label: 'All details', filename: 'opportunities-full.csv', headers: allHeaders, rows: filtered.map(toAllRow) },
+    ]
+  }, [filtered])
 
   const handleRowClick = (opp: Opp, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-delete]')) return
@@ -412,6 +433,8 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId }: O
         )}
 
         <div style={{ flex: 1 }} />
+
+        {isAdmin && <DownloadCsvButton options={exportOptions} />}
 
         <button
           className="btn-primary"

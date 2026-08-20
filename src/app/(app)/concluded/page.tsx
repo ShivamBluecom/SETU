@@ -51,6 +51,7 @@ export default async function ConcludedPage() {
     value: o.value.toNumber(),
     finalDealValue: o.finalDealValue != null ? o.finalDealValue.toNumber() : null,
   }))
+  const isAdmin = user.role === 'ADMIN'
 
   return (
     <div>
@@ -62,7 +63,7 @@ export default async function ConcludedPage() {
           Won and lost opportunities — view only
         </p>
       </div>
-      <ConcludedClient opportunities={opportunities} />
+      <ConcludedClient opportunities={opportunities} isAdmin={isAdmin} />
     </div>
   )
 }

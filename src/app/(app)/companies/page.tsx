@@ -29,6 +29,7 @@ export default async function CompaniesPage() {
     openOpportunities: c.opportunities.length,
     pipelineValue: c.opportunities.reduce((sum, o) => sum + Number(o.value), 0),
   }))
+  const isAdmin = user.role === 'ADMIN'
 
   return (
     <div>
@@ -41,7 +42,7 @@ export default async function CompaniesPage() {
           <NewCompanyButton />
         </div>
       </div>
-      <CompanyTable companies={enriched} currentUserId={user.id} />
+      <CompanyTable companies={enriched} currentUserId={user.id} isAdmin={isAdmin} />
     </div>
   )
 }

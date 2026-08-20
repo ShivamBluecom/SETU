@@ -9,6 +9,7 @@ export default async function ContactsPage() {
   if (!session) return null
 
   const user = session.user as SessionUser
+  const isAdmin = user.role === 'ADMIN'
 
   const [contacts, manageableCompanies] = await Promise.all([
     prisma.contact.findMany({
@@ -33,7 +34,7 @@ export default async function ContactsPage() {
           <NewContactButton companies={manageableCompanies} />
         )}
       </div>
-      <ContactTable contacts={contacts} />
+      <ContactTable contacts={contacts} isAdmin={isAdmin} />
     </div>
   )
 }
