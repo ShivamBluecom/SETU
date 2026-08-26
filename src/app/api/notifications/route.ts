@@ -56,3 +56,23 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ error: 'Provide id or all:true' }, { status: 400 })
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const user = session.user as SessionUser
+  const body = await req.json()
+
+  if (body.all) {
+    await prisma.notification.deleteMany({ where: { userId: user.id } })
+    return NextResponse.json({ ok: true })
+  }
+
+  if (body.id) {
+    await prisma.notification.deleteMany({ where: { id: body.id, userId: user.id } })
+    return NextResponse.json({ ok: true })
+  }
+
+  return NextResponse.json({ error: 'Provide id or all:true' }, { status: 400 })
+}
