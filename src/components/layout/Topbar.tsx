@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, BookOpen, LogOut } from 'lucide-react'
+import { Bell, BookOpen, LogOut, Menu } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { Avatar } from '@/components/ui/Avatar'
 import type { UserRole } from '@/types/enums'
@@ -16,6 +16,24 @@ interface TopbarProps {
     buId?: string | null
     territoryId?: string | null
   }
+  isMobile?: boolean
+  onToggleSidebar?: () => void
+}
+
+const iconBtnStyle: React.CSSProperties = {
+  color: 'var(--color-text-2)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '36px',
+  height: '36px',
+  borderRadius: '10px',
+  border: '1px solid var(--color-border)',
+  background: 'var(--color-surface)',
+  textDecoration: 'none',
+  boxShadow: 'var(--shadow-xs)',
+  transition: 'box-shadow 150ms, background 150ms',
+  cursor: 'pointer',
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -205,7 +223,7 @@ function UserMenu({ user }: { user: TopbarProps['user'] }) {
   )
 }
 
-export function Topbar({ user }: TopbarProps) {
+export function Topbar({ user, isMobile, onToggleSidebar }: TopbarProps) {
   const pathname = usePathname()
   const title = getTitle(pathname)
 
@@ -218,14 +236,25 @@ export function Topbar({ user }: TopbarProps) {
         boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 24px',
-        gap: '12px',
+        padding: isMobile ? '0 12px' : '0 24px',
+        gap: isMobile ? '8px' : '12px',
         flexShrink: 0,
         position: 'sticky',
         top: 0,
         zIndex: 50,
       }}
     >
+      {/* Hamburger (mobile only) */}
+      {isMobile && (
+        <button
+          onClick={onToggleSidebar}
+          aria-label="Toggle navigation"
+          style={{ ...iconBtnStyle, border: 'none', background: 'none', boxShadow: 'none' }}
+        >
+          <Menu size={18} strokeWidth={1.75} />
+        </button>
+      )}
+
       {/* Page title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <h2
@@ -244,55 +273,31 @@ export function Topbar({ user }: TopbarProps) {
       <div style={{ flex: 1 }} />
 
       {/* Docs */}
-      <a
-        href="/docs.html"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="User Guide"
-        style={{
-          color: 'var(--color-text-2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '36px',
-          height: '36px',
-          borderRadius: '10px',
-          border: '1px solid var(--color-border)',
-          background: 'var(--color-surface)',
-          textDecoration: 'none',
-          boxShadow: 'var(--shadow-xs)',
-          transition: 'box-shadow 150ms, background 150ms',
-        }}
-        onMouseEnter={e => {
-          ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'
-          ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'
-        }}
-        onMouseLeave={e => {
-          ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'
-          ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface)'
-        }}
-      >
-        <BookOpen size={15} strokeWidth={1.75} />
-      </a>
+      {!isMobile && (
+        <a
+          href="/docs.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="User Guide"
+          style={iconBtnStyle}
+          onMouseEnter={e => {
+            ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'
+            ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'
+          }}
+          onMouseLeave={e => {
+            ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'
+            ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface)'
+          }}
+        >
+          <BookOpen size={15} strokeWidth={1.75} />
+        </a>
+      )}
 
       {/* Notifications */}
       <Link
         href="/notifications"
         title="Notifications"
-        style={{
-          color: 'var(--color-text-2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '36px',
-          height: '36px',
-          borderRadius: '10px',
-          border: '1px solid var(--color-border)',
-          background: 'var(--color-surface)',
-          textDecoration: 'none',
-          boxShadow: 'var(--shadow-xs)',
-          transition: 'box-shadow 150ms, background 150ms',
-        }}
+        style={iconBtnStyle}
         onMouseEnter={e => {
           ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'
           ;(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'

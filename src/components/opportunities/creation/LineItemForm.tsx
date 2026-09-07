@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { BU_FIELD_CONFIG, commitmentTermToMonths, type FieldDef } from '@/lib/bu-field-config'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 
@@ -74,6 +75,7 @@ function FieldInput({ field, value, onChange }: { field: FieldDef; value: string
 
 export function LineItemForm({ opportunityId, lineItemId, initialData, onSaved, onCancel }: LineItemFormProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const isEdit = !!lineItemId
 
   const [allBUs, setAllBUs] = useState<BUOption[]>([])
@@ -216,7 +218,7 @@ export function LineItemForm({ opportunityId, lineItemId, initialData, onSaved, 
 
   return (
     <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '6px', padding: '16px', background: 'var(--color-surface-2)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
         <div>
           <label style={LABEL_STYLE}>Business Unit *</label>
           <SearchableSelect
@@ -243,7 +245,7 @@ export function LineItemForm({ opportunityId, lineItemId, initialData, onSaved, 
       {config && (
         <>
           {config.showQtyUnitPrice && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
               <div>
                 <label style={LABEL_STYLE}>Quantity</label>
                 <input type="number" min="0" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="0" />
@@ -260,7 +262,7 @@ export function LineItemForm({ opportunityId, lineItemId, initialData, onSaved, 
           )}
 
           {config.totalValueFormula === 'LICENCE_X_PRICE' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
               <div>
                 <label style={LABEL_STYLE}>Licence Count</label>
                 <input type="number" min="0" value={licenceCount} onChange={e => setLicenceCount(e.target.value)} placeholder="0" />
@@ -277,7 +279,7 @@ export function LineItemForm({ opportunityId, lineItemId, initialData, onSaved, 
           )}
 
           {config.totalValueFormula === 'MONTHLY_X_TERM' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
               <div>
                 <label style={LABEL_STYLE}>Monthly Commit ₹</label>
                 <input type="number" min="0" value={monthlyCommit} onChange={e => setMonthlyCommit(e.target.value)} placeholder="0" />
@@ -295,7 +297,7 @@ export function LineItemForm({ opportunityId, lineItemId, initialData, onSaved, 
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {config.fields.map(field => {
               const options = field.oemManaged ? buOemOptions : (field.options ?? [])
               const effectiveField: FieldDef = { ...field, options }

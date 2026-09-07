@@ -20,7 +20,7 @@ export interface BUConfig {
 }
 
 export const ISG_SUBCATEGORIES = [
-  'Laptops', 'Desktops', 'All-in-One', 'Workstations', 'Thin Clients', 'Mini PCs',
+  'Laptops', 'Tablets', 'Desktops', 'All-in-One', 'Workstations', 'Thin Clients', 'Mini PCs',
   'Servers (Rack)', 'Servers (Tower)', 'Servers (Blade)', 'Servers (HPC)',
   'NAS', 'SAN', 'Storage Accessories', 'Monitors', 'Printers', 'Scanners',
   'UPS', 'Docking Stations', 'Keyboards & Mice', 'Webcams', 'Headsets',

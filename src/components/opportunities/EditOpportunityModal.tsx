@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { OpportunityWithRelations } from '@/types/api'
 
 interface EditOpportunityModalProps {
@@ -38,6 +39,7 @@ const ERR: React.CSSProperties = { fontSize: '11px', color: 'var(--color-danger)
 
 export function EditOpportunityModal({ opp, open, onOpenChange, onSaved }: EditOpportunityModalProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [territories, setTerritories] = useState<Territory[]>([])
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -118,7 +120,7 @@ export function EditOpportunityModal({ opp, open, onOpenChange, onSaved }: EditO
           {errors.title && <p style={ERR}>{errors.title}</p>}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
           <div>
             <label style={LABEL}>Close Date *</label>
             <input

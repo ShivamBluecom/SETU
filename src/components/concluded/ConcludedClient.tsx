@@ -317,6 +317,7 @@ export function ConcludedClient({ opportunities, isAdmin }: ConcludedClientProps
             No results match your search.
           </div>
         ) : tab === 'WON' ? (
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -370,7 +371,9 @@ export function ConcludedClient({ opportunities, isAdmin }: ConcludedClientProps
               ))}
             </tbody>
           </table>
+          </div>
         ) : (
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -426,6 +429,7 @@ export function ConcludedClient({ opportunities, isAdmin }: ConcludedClientProps
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

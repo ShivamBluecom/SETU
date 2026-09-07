@@ -8,6 +8,7 @@ import { BarList } from '@/components/ui/charts/BarList'
 import { DonutChart } from '@/components/ui/charts/DonutChart'
 import { TrendChart } from '@/components/ui/charts/TrendChart'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useRouter } from 'next/navigation'
 import { Pencil, Trash2, Check, X } from 'lucide-react'
 import { formatINR, formatINRCompact } from '@/lib/format'
@@ -109,6 +110,7 @@ const filterInputStyle: React.CSSProperties = {
 }
 
 export function AdminTabs({ users, businessUnits, territories, oemConfigs, opportunities, currentUserId }: AdminTabsProps) {
+  const isMobile = useIsMobile()
   const [tab, setTab] = useState('users')
 
   // User filter state
@@ -407,6 +409,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
         </div>
 
         <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -533,6 +536,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </Tabs.Content>
 
@@ -550,6 +554,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
           <button className="btn-primary" onClick={createBU}>Create</button>
         </div>
         <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+          <div className="table-scroll">
           <table>
             <thead>
               <tr><th>Name</th><th>Type</th><th>BU Head</th><th>Total Members</th><th style={{ width: '80px' }}></th></tr>
@@ -651,6 +656,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </Tabs.Content>
 
@@ -663,6 +669,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
           <button className="btn-primary" onClick={createTerritory}>Create</button>
         </div>
         <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+          <div className="table-scroll">
           <table>
             <thead>
               <tr><th>Territory</th><th>Users</th><th>Opportunities</th><th style={{ width: '80px' }}></th></tr>
@@ -739,6 +746,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </Tabs.Content>
 
@@ -763,7 +771,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
             <button className="btn-primary" onClick={createOemConfig}>Add</button>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
           {BU_TYPES.map(bt => (
             <div key={bt} style={cardStyle}>
               <p style={sectionLabelStyle}>{BU_TYPE_LABELS[bt]}</p>
@@ -800,14 +808,14 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
       </Tabs.Content>
 
       <Tabs.Content value="analytics">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
           <KPICard title="Total Pipeline" value={formatINR(totalPipelineValue)} subtitle={`${openOpps.length} open opportunities`} valueColor="accent" />
           <KPICard title="Open Opportunities" value={String(openOpps.length)} subtitle="Excluding Won & Lost" />
           <KPICard title="Win Rate" value={`${winRate}%`} subtitle={`${wonCount} won of ${opportunities.length} total`} />
           <KPICard title="Avg Deal Size" value={formatINR(avgDealSize)} subtitle="Across all opportunities" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
           <div style={cardStyle}>
             <p style={sectionLabelStyle}>Won / Lost / Open</p>
             <DonutChart
@@ -824,7 +832,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
           <div style={cardStyle}>
             <p style={sectionLabelStyle}>Pipeline by Business Unit</p>
             <BarList rows={businessUnitRows} formatValue={formatINRCompact} />
@@ -835,7 +843,7 @@ export function AdminTabs({ users, businessUnits, territories, oemConfigs, oppor
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px' }}>
           <div style={cardStyle}>
             <p style={sectionLabelStyle}>Top Owners by Pipeline</p>
             <BarList rows={ownerRows} formatValue={formatINRCompact} />

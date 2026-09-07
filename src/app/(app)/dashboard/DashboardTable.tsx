@@ -18,6 +18,7 @@ export function DashboardTable({ opportunities }: DashboardTableProps) {
 
   return (
     <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+      <div className="table-scroll">
       <table>
         <thead>
           <tr>
@@ -36,6 +37,7 @@ export function DashboardTable({ opportunities }: DashboardTableProps) {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }

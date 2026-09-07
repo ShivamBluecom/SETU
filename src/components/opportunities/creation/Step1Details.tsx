@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Plus } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { InlineCompanyForm } from '@/components/opportunities/InlineCompanyForm'
 import { InlineContactForm } from '@/components/opportunities/InlineContactForm'
@@ -51,6 +52,7 @@ export function Step1Details({ opportunityId, onNext, onSaved, onDisplayIdReady 
   const { data: session } = useSession()
   const user = session?.user as SessionUser | undefined
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [saving, setSaving] = useState(false)
   const [companies, setCompanies] = useState<SelectOption[]>([])
   const [contacts, setContacts] = useState<ContactOption[]>([])
@@ -226,7 +228,7 @@ export function Step1Details({ opportunityId, onNext, onSaved, onDisplayIdReady 
         {errors.title && <p style={errStyle}>{errors.title}</p>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
             <label style={{ ...labelStyle, marginBottom: 0 }}>Company *</label>
@@ -357,7 +359,7 @@ export function Step1Details({ opportunityId, onNext, onSaved, onDisplayIdReady 
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         <div>
           <label style={labelStyle}>Close Date *</label>
           <input

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface StageBlocksProps {
   counts: Partial<Record<string, number>>
@@ -172,12 +173,13 @@ function StageBlock({
 
 export function StageBlocks({ counts, selectedStage, onStageClick }: StageBlocksProps) {
   const interactive = !!onStageClick
+  const isMobile = useIsMobile()
 
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(6, 1fr)',
+        gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)',
         gap: '10px',
       }}
     >

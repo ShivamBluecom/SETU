@@ -85,6 +85,7 @@ export function CompanyTabs({ contacts, opportunities, companyId, canEdit }: Pro
             <EmptyState message="Opportunities will appear here." />
           ) : (
             <div style={{ border: '0.5px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+              <div className="table-scroll">
               <table>
                 <thead>
                   <tr>
@@ -107,6 +108,7 @@ export function CompanyTabs({ contacts, opportunities, companyId, canEdit }: Pro
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </Tabs.Content>

@@ -35,6 +35,7 @@ export function KanbanCard({ opportunity, onClick }: KanbanCardProps) {
         cursor: 'pointer',
         position: 'relative',
         opacity: isDraft ? 0.75 : 1,
+        touchAction: 'none',
       }}
       {...attributes}
       {...listeners}

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { Plus } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { InlineCompanyForm } from '@/components/opportunities/InlineCompanyForm'
 import { InlineContactForm } from '@/components/opportunities/InlineContactForm'
 import type { OpportunityStage, OpportunityPriority } from '@/types/enums'
@@ -55,6 +56,7 @@ export function NewOpportunityModal({
   const canAssignOwner = !!currentUser && ASSIGN_OWNER_ROLES.includes(currentUser.role)
 
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [saving, setSaving] = useState(false)
   const [companies, setCompanies] = useState<SelectOption[]>([])
   const [contacts, setContacts] = useState<SelectOption[]>([])
@@ -164,7 +166,7 @@ export function NewOpportunityModal({
           <input value={form.title} onChange={set('title')} required placeholder="Opportunity title" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '8px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <label style={{ ...labelStyle, marginBottom: 0 }}>Company *</label>
@@ -230,7 +232,7 @@ export function NewOpportunityModal({
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Value (₹)</label>
             <input type="number" min="0" value={form.value} onChange={set('value')} placeholder="0" />
@@ -241,7 +243,7 @@ export function NewOpportunityModal({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Stage</label>
             <select value={form.stage} onChange={set('stage')}>
@@ -266,7 +268,7 @@ export function NewOpportunityModal({
         </div>
 
         {currentUser?.role !== 'ACCOUNT_MANAGER' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={labelStyle}>
                 Business Unit

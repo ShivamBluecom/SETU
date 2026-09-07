@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface NewContactModalProps {
   open: boolean
@@ -28,6 +29,7 @@ const BLANK = (defaultCompanyId?: string) => ({
 
 export function NewContactModal({ open, onOpenChange, defaultCompanyId, onCreated, companies: propCompanies }: NewContactModalProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [saving, setSaving] = useState(false)
   const [companies, setCompanies] = useState<Company[]>(propCompanies ?? [])
   const [form, setForm] = useState(BLANK(defaultCompanyId))
@@ -107,7 +109,7 @@ export function NewContactModal({ open, onOpenChange, defaultCompanyId, onCreate
           <input value={form.designation} onChange={set('designation')} required placeholder="e.g. CTO, VP Sales" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Work Email *</label>
             <input type="email" value={form.email} onChange={set('email')} required placeholder="email@company.com" />
@@ -118,7 +120,7 @@ export function NewContactModal({ open, onOpenChange, defaultCompanyId, onCreate
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Personal Email</label>
             <input type="email" value={form.personalEmail} onChange={set('personalEmail')} placeholder="personal@gmail.com" />
@@ -129,7 +131,7 @@ export function NewContactModal({ open, onOpenChange, defaultCompanyId, onCreate
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Alternate Phone</label>
             <input type="tel" value={form.alternatePhone} onChange={setPhone('alternatePhone')} placeholder="+91 98765 43210" />

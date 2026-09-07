@@ -19,6 +19,9 @@ import type { UserRole } from '@/types/enums'
 interface SidebarProps {
   role: UserRole
   showDashboard: boolean
+  isMobile?: boolean
+  open?: boolean
+  onClose?: () => void
 }
 
 const NAV = [
@@ -31,17 +34,19 @@ const NAV = [
   { href: '/notifications',  icon: Bell,            label: 'Notifications' },
 ]
 
-function NavItem({ href, icon: Icon, label, active }: {
+function NavItem({ href, icon: Icon, label, active, onNavigate }: {
   href: string
   icon: typeof LayoutDashboard
   label: string
   active: boolean
+  onNavigate?: () => void
 }) {
   const [hover, setHover] = useState(false)
 
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       aria-label={label}
@@ -96,7 +101,7 @@ function NavItem({ href, icon: Icon, label, active }: {
   )
 }
 
-export function Sidebar({ role, showDashboard }: SidebarProps) {
+export function Sidebar({ role, showDashboard, isMobile, open, onClose }: SidebarProps) {
   const pathname = usePathname()
 
   const baseNav = showDashboard ? NAV : NAV.filter(item => item.href !== '/dashboard')
@@ -112,7 +117,14 @@ export function Sidebar({ role, showDashboard }: SidebarProps) {
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        position: 'relative',
+        position: isMobile ? 'fixed' : 'relative',
+        top: isMobile ? 0 : undefined,
+        left: isMobile ? 0 : undefined,
+        bottom: isMobile ? 0 : undefined,
+        zIndex: isMobile ? 200 : undefined,
+        transform: isMobile ? (open ? 'translateX(0)' : 'translateX(-100%)') : undefined,
+        transition: isMobile ? 'transform 220ms ease' : undefined,
+        boxShadow: isMobile && open ? 'var(--shadow-xl)' : undefined,
         overflow: 'hidden',
       }}
     >
@@ -208,6 +220,7 @@ export function Sidebar({ role, showDashboard }: SidebarProps) {
               icon={icon}
               label={label}
               active={active}
+              onNavigate={isMobile ? onClose : undefined}
             />
           )
         })}

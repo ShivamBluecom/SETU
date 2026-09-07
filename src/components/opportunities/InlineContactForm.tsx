@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface InlineContactFormProps {
   companyId: string
@@ -17,6 +18,7 @@ const BLANK = {
 
 export function InlineContactForm({ companyId, onCreated, onCancel }: InlineContactFormProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [form, setForm] = useState(BLANK)
   const [saving, setSaving] = useState(false)
 
@@ -84,7 +86,7 @@ export function InlineContactForm({ companyId, onCreated, onCancel }: InlineCont
           <label style={lbl}>Designation *</label>
           <input value={form.designation} onChange={set('designation')} required placeholder="e.g. CTO, VP Sales" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>Work Email *</label>
             <input type="email" value={form.email} onChange={set('email')} required placeholder="email@company.com" />
@@ -94,7 +96,7 @@ export function InlineContactForm({ companyId, onCreated, onCancel }: InlineCont
             <input type="tel" value={form.phone} onChange={setPhone('phone')} required placeholder="+91 98765 43210" />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>Personal Email</label>
             <input type="email" value={form.personalEmail} onChange={set('personalEmail')} placeholder="personal@gmail.com" />
@@ -104,7 +106,7 @@ export function InlineContactForm({ companyId, onCreated, onCancel }: InlineCont
             <input type="tel" value={form.personalPhone} onChange={setPhone('personalPhone')} placeholder="+91 98765 43210" />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>Alternate Phone</label>
             <input type="tel" value={form.alternatePhone} onChange={setPhone('alternatePhone')} placeholder="+91 98765 43210" />

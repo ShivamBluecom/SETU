@@ -88,7 +88,7 @@ export function CompanyTable({ companies, currentUserId, isAdmin }: CompanyTable
   return (
     <div>
       {/* Filter bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
         {/* Owner toggle */}
         <div style={{ display: 'flex', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden', height: '34px', flexShrink: 0 }}>
           {(['mine', 'all'] as const).map(v => (
@@ -194,6 +194,7 @@ export function CompanyTable({ companies, currentUserId, isAdmin }: CompanyTable
               : 'No companies found.'}
           </div>
         ) : (
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -236,6 +237,7 @@ export function CompanyTable({ companies, currentUserId, isAdmin }: CompanyTable
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

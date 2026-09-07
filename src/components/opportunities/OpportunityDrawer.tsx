@@ -11,6 +11,7 @@ import { WonLostModal } from './WonLostModal'
 import { LineItemForm, type LineItemInitialData } from '@/components/opportunities/creation/LineItemForm'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { formatINR, formatDate } from '@/lib/format'
 import type { OpportunityWithRelations } from '@/types/api'
 import type { OpportunityStage } from '@/types/enums'
@@ -56,6 +57,7 @@ export function OpportunityDrawer({
   const currentUserId = session?.user?.id
   const currentUserRole = (session?.user as { role?: string } | undefined)?.role
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
 
   const [opp, setOpp] = useState<OpportunityWithRelations | null>(null)
   const [loading, setLoading] = useState(false)
@@ -304,12 +306,12 @@ export function OpportunityDrawer({
             </div>
 
             {/* Body */}
-            <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+            <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '14px' : '20px' }}>
 
               {/* Details */}
               <section style={{ marginBottom: '24px' }}>
                 <p style={{ ...SEC, marginBottom: '12px' }}>Details</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <Detail label="Value">
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 500 }}>{formatINR(opp.value)}</span>
                   </Detail>
@@ -334,7 +336,7 @@ export function OpportunityDrawer({
                       {opp.stage === 'WON' ? 'Won Details' : 'Lost Details'}
                     </p>
                     {opp.stage === 'WON' ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
                         {opp.closingComment && (
                           <div style={{ gridColumn: '1 / -1' }}>
                             <ConcludedField label="Close Remarks" value={opp.closingComment} />
@@ -358,7 +360,7 @@ export function OpportunityDrawer({
                         )}
                       </div>
                     ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
                         {opp.lossReason && <ConcludedField label="Loss Reason" value={opp.lossReason} />}
                         {opp.lostTo && <ConcludedField label="Lost To" value={opp.lostTo} />}
                         {opp.couldBeRevived != null && (

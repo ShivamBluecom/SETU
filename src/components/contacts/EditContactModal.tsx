@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Contact } from '@prisma/client'
 
 interface EditContactModalProps {
@@ -14,6 +15,7 @@ interface EditContactModalProps {
 
 export function EditContactModal({ contact, open, onOpenChange, onSaved }: EditContactModalProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     name: '',
@@ -100,7 +102,7 @@ export function EditContactModal({ contact, open, onOpenChange, onSaved }: EditC
           <input value={form.designation} onChange={set('designation')} placeholder="e.g. CTO, VP Sales" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Work Email</label>
             <input type="email" value={form.email} onChange={set('email')} placeholder="email@company.com" />
@@ -111,7 +113,7 @@ export function EditContactModal({ contact, open, onOpenChange, onSaved }: EditC
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Personal Email</label>
             <input type="email" value={form.personalEmail} onChange={set('personalEmail')} placeholder="personal@gmail.com" />
@@ -122,7 +124,7 @@ export function EditContactModal({ contact, open, onOpenChange, onSaved }: EditC
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Alternate Phone</label>
             <input type="tel" value={form.alternatePhone} onChange={setPhone('alternatePhone')} placeholder="+91 98765 43210" />

@@ -155,6 +155,7 @@ export function ContactTable({ contacts, showCompany = true, onRefresh, isAdmin 
             No contacts match the current filters.
           </div>
         ) : (
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -177,6 +178,7 @@ export function ContactTable({ contacts, showCompany = true, onRefresh, isAdmin 
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

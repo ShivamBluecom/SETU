@@ -458,6 +458,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId, isA
             No opportunities match the current filters.
           </div>
         ) : (
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -561,6 +562,7 @@ export function OpportunitiesClient({ opportunities: initial, currentUserId, isA
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
