@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { X, Maximize2 } from 'lucide-react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { StageBlocks } from '@/components/ui/StageBlocks'
 import { BarList } from '@/components/ui/charts/BarList'
 import { TrendChart } from '@/components/ui/charts/TrendChart'
@@ -227,6 +228,7 @@ function ChartModal({
             overflow: 'hidden',
           }}
         >
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -279,6 +281,7 @@ function ChartModal({
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
@@ -296,6 +299,7 @@ export function DashboardClient({
   showTerritory,
   showBU,
 }: DashboardClientProps) {
+  const isMobile = useIsMobile()
   const [selectedStage, setSelectedStage] = useState<string | null>(null)
   const [activeModal, setActiveModal] = useState<ModalId | null>(null)
 
@@ -384,7 +388,7 @@ export function DashboardClient({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
           gap: '16px',
           marginBottom: '28px',
         }}
@@ -403,7 +407,7 @@ export function DashboardClient({
           style={{
             display: 'grid',
             gridTemplateColumns:
-              showTerritory && territoryRows.length > 0 && showBU && buRows.length > 0
+              !isMobile && showTerritory && territoryRows.length > 0 && showBU && buRows.length > 0
                 ? 'repeat(2, 1fr)'
                 : '1fr',
             gap: '16px',

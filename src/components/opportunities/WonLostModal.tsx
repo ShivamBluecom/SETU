@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const LOSS_REASONS = [
   'Price',
@@ -59,6 +60,7 @@ interface WonLostModalProps {
 
 export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }: WonLostModalProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [saving, setSaving] = useState(false)
   const [wonForm, setWonForm] = useState<WonForm>(BLANK_WON)
   const [lostForm, setLostForm] = useState<LostForm>(BLANK_LOST)
@@ -165,7 +167,7 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
               placeholder="Summarise the outcome…"
             />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
             <div style={field}>
               <label style={lbl}>Final Deal Value (₹) *</label>
               <input
@@ -213,7 +215,7 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
           </div>
 
           {wonForm.hasSubscription && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
               <div style={field}>
                 <label style={lbl}>Subscription Start Date</label>
                 <input

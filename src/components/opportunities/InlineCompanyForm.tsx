@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { WebsiteInput } from '@/components/ui/WebsiteInput'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface InlineCompanyFormProps {
   territories: { id: string; name: string }[]
@@ -24,6 +25,7 @@ const BLANK = {
 
 export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCompanyFormProps) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [form, setForm] = useState(BLANK)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -109,7 +111,7 @@ export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCo
           <input value={form.name} onChange={set('name')} placeholder="Acme Corp" style={bc('name')} />
           {errMsg('name')}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>Industry *</label>
             <select value={form.industry} onChange={set('industry')} style={bc('industry')}>
@@ -132,7 +134,7 @@ export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCo
           <input value={form.address} onChange={set('address')} placeholder="Full office address" style={bc('address')} />
           {errMsg('address')}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>GST Number</label>
             <input value={form.gstNumber} onChange={set('gstNumber')} placeholder="22AAAAA0000A1Z5" />
@@ -143,7 +145,7 @@ export function InlineCompanyForm({ territories, onCreated, onCancel }: InlineCo
             {errMsg('userCount')}
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           <div>
             <label style={lbl}>Website *</label>
             <WebsiteInput

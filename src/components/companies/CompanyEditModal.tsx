@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Company, Territory } from '@prisma/client'
 
 interface TerritoryOption { id: string; name: string }
@@ -22,6 +23,7 @@ interface Props {
 
 export function CompanyEditModal({ open, onOpenChange, company, onSaved }: Props) {
   const { showToast } = useToast()
+  const isMobile = useIsMobile()
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [territories, setTerritories] = useState<TerritoryOption[]>([])
@@ -141,7 +143,7 @@ export function CompanyEditModal({ open, onOpenChange, company, onSaved }: Props
           {errMsg('name')}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Industry *</label>
             <select value={form.industry} onChange={set('industry')} required style={{ borderColor: borderColor('industry') }}>
@@ -172,7 +174,7 @@ export function CompanyEditModal({ open, onOpenChange, company, onSaved }: Props
           {errMsg('address')}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>GST Number</label>
             <input value={form.gstNumber} onChange={set('gstNumber')} placeholder="22AAAAA0000A1Z5" />
@@ -192,7 +194,7 @@ export function CompanyEditModal({ open, onOpenChange, company, onSaved }: Props
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Website *</label>
             <input

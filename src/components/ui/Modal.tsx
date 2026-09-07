@@ -2,6 +2,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface ModalProps {
   open: boolean
@@ -18,6 +19,7 @@ export function Modal({
   children,
   maxWidth = '480px',
 }: ModalProps) {
+  const isMobile = useIsMobile()
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -39,12 +41,12 @@ export function Modal({
             border: '0.5px solid var(--color-border)',
             borderRadius: '8px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            width: '100%',
+            width: 'calc(100% - 32px)',
             maxWidth,
             maxHeight: '90vh',
             overflow: 'auto',
             zIndex: 50,
-            padding: '24px',
+            padding: isMobile ? '16px' : '24px',
           }}
         >
           <div

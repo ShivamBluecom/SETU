@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { WebsiteInput } from '@/components/ui/WebsiteInput'
 import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useRouter } from 'next/navigation'
 
 interface Territory { id: string; name: string }
@@ -27,6 +28,7 @@ export function NewCompanyButton() {
   const [territories, setTerritories] = useState<Territory[]>([])
   const { showToast } = useToast()
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   const [form, setForm] = useState(BLANK)
 
@@ -131,7 +133,7 @@ export function NewCompanyButton() {
             {errMsg('name')}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={labelStyle}>Industry *</label>
               <select value={form.industry} onChange={set('industry')} style={{ borderColor: borderColor('industry') }}>
@@ -161,7 +163,7 @@ export function NewCompanyButton() {
             {errMsg('address')}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={labelStyle}>GST Number</label>
               <input value={form.gstNumber} onChange={set('gstNumber')} placeholder="22AAAAA0000A1Z5" />
@@ -180,7 +182,7 @@ export function NewCompanyButton() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={labelStyle}>Website *</label>
               <WebsiteInput
