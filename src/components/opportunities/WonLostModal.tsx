@@ -58,6 +58,9 @@ interface WonLostModalProps {
   onCancel: () => void
 }
 
+// Matches Opportunity.poNumber NVarChar(200)
+const PO_MAX_LENGTH = 200
+
 export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }: WonLostModalProps) {
   const { showToast } = useToast()
   const isMobile = useIsMobile()
@@ -83,11 +86,14 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setLostForm(f => ({ ...f, [k]: e.target.value }))
 
+  const poTooLong = wonForm.poNumber.trim().length > PO_MAX_LENGTH
+
   const isWonValid =
     wonForm.closeRemarks.trim() !== '' &&
     wonForm.finalDealValue !== '' &&
     parseFloat(wonForm.finalDealValue) >= 0 &&
     wonForm.poNumber.trim() !== '' &&
+    !poTooLong &&
     wonForm.expectedDeliveryDate !== '' &&
     wonForm.keyDecisionMaker.trim() !== ''
 
@@ -184,7 +190,14 @@ export function WonLostModal({ open, stage, opportunityId, onSuccess, onCancel }
                 value={wonForm.poNumber}
                 onChange={setWon('poNumber')}
                 placeholder="PO-12345"
+                style={poTooLong ? { borderColor: 'var(--color-danger, #dc2626)' } : undefined}
               />
+              {poTooLong && (
+                <div style={{ fontSize: '11px', color: 'var(--color-danger, #dc2626)', marginTop: '4px' }}>
+                  PO field is limited to {PO_MAX_LENGTH} characters ({wonForm.poNumber.trim().length} entered).
+                  Please keep the first few POs here and add the remaining POs in Close Remarks.
+                </div>
+              )}
             </div>
             <div style={field}>
               <label style={lbl}>Expected Delivery / Go-live Date *</label>
